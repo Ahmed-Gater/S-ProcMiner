@@ -3,7 +3,6 @@ package org.ag.processmining.data;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import org.ag.processmining.Utils.DateFormatExtractor;
 import org.apache.commons.csv.CSVFormat;
@@ -11,8 +10,6 @@ import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
 
 public class Event
   implements Serializable

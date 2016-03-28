@@ -5,16 +5,10 @@
  */
 package org.ag.processmining.logsummarizer;
 
-import org.ag.processmining.data.CaseId;
-import org.ag.processmining.data.ProcInstance;
-import org.ag.processmining.data.Event;
 import java.util.Iterator;
-import org.apache.spark.api.java.function.PairFunction;
-import scala.Tuple2;
-import org.apache.spark.SparkConf;
-import org.apache.spark.api.java.JavaPairRDD;
-import org.apache.spark.api.java.JavaRDD;
-import org.apache.spark.api.java.JavaSparkContext;
+import org.ag.processmining.data.CaseId;
+import org.ag.processmining.data.Event;
+import org.ag.processmining.data.ProcInstance;
 import org.apache.spark.api.java.function.Function;
 import org.apache.spark.api.java.function.PairFunction;
 import scala.Tuple2;

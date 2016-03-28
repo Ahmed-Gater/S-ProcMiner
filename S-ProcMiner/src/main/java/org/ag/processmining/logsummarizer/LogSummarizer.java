@@ -1,22 +1,18 @@
 package org.ag.processmining.logsummarizer;
-import org.ag.processmining.data.CaseId;
-import org.ag.processmining.data.ProcInstance;
-import org.ag.processmining.data.Event;
-import com.google.common.collect.Iterables;
-import java.util.Iterator;
 import java.util.Map;
-import org.apache.spark.SparkConf;
-import org.apache.spark.api.java.JavaPairRDD;
-import org.apache.spark.api.java.JavaRDD;
-import org.apache.spark.api.java.JavaSparkContext;
-import static org.ag.processmining.logsummarizer.SparkUtils.MAP_TO_CASE_ID_EVENT ;
-import static org.ag.processmining.logsummarizer.SparkUtils.MAP_TO_CASE_ID_PROC_INSTANCE ;
-import static org.ag.processmining.logsummarizer.SparkUtils.EVENT_CLASSES_GETTER ;
-import static org.ag.processmining.logsummarizer.SparkUtils.START_EVENT_CLASSES ;
-import static org.ag.processmining.logsummarizer.SparkUtils.END_EVENT_CLASSES ;
+import org.ag.processmining.data.CaseId;
+import org.ag.processmining.data.Event;
+import org.ag.processmining.data.ProcInstance;
+import static org.ag.processmining.logsummarizer.SparkUtils.END_EVENT_CLASSES;
+import static org.ag.processmining.logsummarizer.SparkUtils.EVENT_CLASSES_GETTER;
 import static org.ag.processmining.logsummarizer.SparkUtils.EVENT_ORIGINATOR;
-import org.apache.spark.api.java.function.Function;
-import scala.Tuple2;
+import static org.ag.processmining.logsummarizer.SparkUtils.MAP_TO_CASE_ID_EVENT;
+import static org.ag.processmining.logsummarizer.SparkUtils.MAP_TO_CASE_ID_PROC_INSTANCE;
+import static org.ag.processmining.logsummarizer.SparkUtils.START_EVENT_CLASSES;
+import org.apache.spark.SparkConf ;
+import org.apache.spark.api.java.JavaPairRDD ;
+import org.apache.spark.api.java.JavaRDD ;
+import org.apache.spark.api.java.JavaSparkContext ;
 
 public class LogSummarizer
 {
