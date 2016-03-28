@@ -3,8 +3,11 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package org.ag.processmining;
+package org.ag.processmining.logsummarizer;
 
+import org.ag.processmining.data.CaseId;
+import org.ag.processmining.data.ProcInstance;
+import org.ag.processmining.data.Event;
 import java.util.Iterator;
 import org.apache.spark.api.java.function.PairFunction;
 import scala.Tuple2;
@@ -26,7 +29,7 @@ public class SparkUtils {
         @Override
         public Tuple2<CaseId, Event> call(String t) throws Exception {
             Event e = new Event(t);
-            return new Tuple2(e.caseId, e);
+            return new Tuple2(e.getCaseId(), e);
         }
     } ; 
     
@@ -43,5 +46,32 @@ public class SparkUtils {
           } 
     } ; 
             
+    
+    public static final Function<Tuple2<CaseId,Event>,String> EVENT_CLASSES_GETTER = new Function<Tuple2<CaseId,Event>,String>(){
+          @Override
+          public String call(Tuple2<CaseId, Event> tuple) throws Exception {
+              return tuple._2().getEventClass() ; 
+          }
+      } ; 
 
+    public static final Function<Tuple2<CaseId,ProcInstance>,String> START_EVENT_CLASSES = new Function<Tuple2<CaseId,ProcInstance>,String>(){
+          @Override
+          public String call(Tuple2<CaseId, ProcInstance> tuple) throws Exception {
+              return tuple._2().getStartEvent() ; 
+          }
+      } ; 
+    
+    public static final Function<Tuple2<CaseId,ProcInstance>,String> END_EVENT_CLASSES = new Function<Tuple2<CaseId,ProcInstance>,String>(){
+          @Override
+          public String call(Tuple2<CaseId, ProcInstance> tuple) throws Exception {
+              return tuple._2().getEndEvent() ; 
+          }
+      } ; 
+    
+    public static final Function<Tuple2<CaseId,Event>,String> EVENT_ORIGINATOR = new Function<Tuple2<CaseId,Event>,String>(){
+          @Override
+          public String call(Tuple2<CaseId, Event> tuple) throws Exception {
+              return tuple._2().getOriginator() ; 
+          }
+      } ; 
 }
