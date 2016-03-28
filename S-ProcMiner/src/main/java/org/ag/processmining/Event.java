@@ -5,6 +5,7 @@ import java.io.Serializable;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.ag.processmining.Utils.DateFormatExtractor;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
@@ -26,7 +27,8 @@ public class Event
   String[] case_id_fields = { "a_ref_activitee" };
   String start_time_field = "h_dateentree";
   String end_time_field = "h_date_execution";
-  DateTimeFormatter DATE_FORMAT = DateTimeFormat.forPattern("yyyy-MM-DD HH:mm:ss+02");
+ 
+  
   
   public Event(String event_as_string)
     throws IOException
@@ -39,9 +41,9 @@ public class Event
     }
     this.caseId = new CaseId(case_id_field_map);
     
-    this.start_timestamp = DateTime.parse(this.event_as_csv_record.get(this.start_time_field), this.DATE_FORMAT);
+    this.start_timestamp = DateFormatExtractor.buildDateTime(this.event_as_csv_record.get(this.start_time_field)) ;//DateTime.parse(this.event_as_csv_record.get(this.start_time_field), this.DATE_FORMAT);
     
-    this.end_timestamp = DateTime.parse(this.event_as_csv_record.get(this.end_time_field), this.DATE_FORMAT);
+    this.end_timestamp = DateFormatExtractor.buildDateTime(this.event_as_csv_record.get(this.end_time_field)) ;//DateTime.parse(this.event_as_csv_record.get(this.end_time_field), this.DATE_FORMAT);
   }
   
   public Duration getDuration()
