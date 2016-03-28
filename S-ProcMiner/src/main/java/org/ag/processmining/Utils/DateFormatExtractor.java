@@ -38,13 +38,7 @@ public class DateFormatExtractor {
     put("^\\d{1,2}\\s[a-z]{4,}\\s\\d{4}\\s\\d{1,2}:\\d{2}:\\d{2}$", "dd MMMM yyyy HH:mm:ss");
 }};
 
-/**
- * Determine SimpleDateFormat pattern matching with the given date string. Returns null if
- * format is unknown. You can simply extend DateUtil with more formats if needed.
- * @param dateString The date string to determine the SimpleDateFormat pattern for.
- * @return The matching SimpleDateFormat pattern, or null if format is unknown.
- * @see SimpleDateFormat
- */
+
 private static String determineDateFormat(String dateString) {
     for (String regexp : DATE_FORMAT_REGEXPS.keySet()) {
         if (dateString.toLowerCase().matches(regexp)) {
