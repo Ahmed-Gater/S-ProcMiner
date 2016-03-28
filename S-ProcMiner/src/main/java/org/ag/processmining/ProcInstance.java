@@ -1,25 +1,23 @@
-package org.ag.processming;
+package org.ag.processmining;
 
 import java.util.Iterator;
 import java.util.PriorityQueue;
-import org.ag.processmining.Event;
+import java.util.TreeMap;
+import org.joda.time.DateTime;
 
 public class ProcInstance
 {
-  PriorityQueue<Event> orderedEvents;
+  TreeMap<DateTime,Event> orderedEvents;
   
   public ProcInstance()
   {
-    this.orderedEvents = new PriorityQueue();
+    this.orderedEvents = new TreeMap();
   }
   
   public boolean addEvent(Event e)
   {
-    return this.orderedEvents.add(e);
+      return (this.orderedEvents.put(e.start_timestamp, e) != null); 
   }
   
-  public Iterator<Event> iterator()
-  {
-    return this.orderedEvents.iterator();
-  }
+  
 }

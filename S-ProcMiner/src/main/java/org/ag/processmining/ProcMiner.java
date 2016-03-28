@@ -1,5 +1,6 @@
 package org.ag.processmining;
-import java.io.PrintStream;
+import com.google.common.collect.Iterables;
+import java.util.Iterator;
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
@@ -7,6 +8,8 @@ import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.api.java.function.Function;
 import org.apache.spark.api.java.function.PairFunction;
 import scala.Tuple2;
+import static org.ag.processmining.SparkUtils.MAP_TO_CASE_ID_EVENT ;
+import static org.ag.processmining.SparkUtils.MAP_TO_CASE_ID_PROC_INSTANCE ; 
 
 public class ProcMiner
 {
@@ -17,28 +20,9 @@ public class ProcMiner
     JavaSparkContext sc = new JavaSparkContext(conf);
     
     JavaRDD<String> RDDSrc = sc.textFile(sourceFile);
-    JavaPairRDD<CaseId, Event> mapToPair = RDDSrc.mapToPair(new PairFunction()
-    {
-        public Tuple2<CaseId, Event> call(String t)
-        throws Exception
-      {
-        Event e = new Event(t);
-        return new Tuple2(e.caseId, e);
-      }
-
-        @Override
-        public Tuple2 call(Object t) throws Exception {
-            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-        }
-    });
+    // Building 
+    JavaPairRDD<CaseId, Event> CASE_ID_EVENT_MAP = RDDSrc.mapToPair(MAP_TO_CASE_ID_EVENT); 
+    JavaPairRDD<CaseId, ProcInstance> CASE_ID_PROC_INSTANCE =  CASE_ID_EVENT_MAP.groupByKey().mapToPair(MAP_TO_CASE_ID_PROC_INSTANCE) ; 
     
-    JavaRDD<String> Res = mapToPair.map(new Function()
-    {
-        @Override
-        public Object call(Object t1) throws Exception {
-            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-        }
-    });
-    Res.count();
   }
 }
