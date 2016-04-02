@@ -45,11 +45,14 @@ private static String determineDateFormat(String dateString) {
             return DATE_FORMAT_REGEXPS.get(regexp);
         }
     }
-    return null; // Unknown format.
+    return null; 
 }
 
 public static DateTime buildDateTime(String dateAsString){
-    return DateTimeFormat.forPattern(determineDateFormat(dateAsString))
-                         .parseDateTime(dateAsString) ;
+    String dateFormat = determineDateFormat(dateAsString) ; 
+    if (dateFormat != null){
+        return DateTimeFormat.forPattern(dateFormat).parseDateTime(dateAsString) ;
+    }
+    return null ;
 }
 }

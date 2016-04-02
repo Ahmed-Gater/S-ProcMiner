@@ -1,4 +1,5 @@
 package org.ag.processmining.logsummarizer;
+
 import java.util.Map;
 import org.ag.processmining.data.CaseId;
 import org.ag.processmining.data.Event;
@@ -13,11 +14,14 @@ public class LogSummarizer
 {
   public static void main(String[] args)
   {
-    //String sourceFile = "file://D:/ProcessMiningJavaCode/processming/process_data_set.txt";
-      String sourceFile = "D:/ProcessMiningJavaCode/processming/process_data_set.txt";
+    if (args.length == 0){
+        System.out.println("There is no argument") ; 
+        return  ;
+    }
+    
+    String sourceFile = args[0] ; //"D:/ProcessMiningJavaCode/processming/process_data_set.txt";
     SparkConf conf = new SparkConf().setAppName("Workshop").setMaster("local[*]");
     JavaSparkContext sc = new JavaSparkContext(conf);
-    
     
     JavaRDD<String> RDDSrc = sc.textFile(sourceFile);
     // Building 
@@ -54,7 +58,5 @@ public class LogSummarizer
       System.out.println("Number of originators: " + event_originator_occurences.keySet().size()) ; 
       System.out.println("Event orignator occurences") ;
       System.out.println(event_originator_occurences);
-      
-      
   }
 }

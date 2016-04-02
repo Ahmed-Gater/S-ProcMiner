@@ -11,8 +11,7 @@ import org.apache.commons.csv.CSVRecord;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
 
-public class Event
-  implements Serializable
+public class Event implements Serializable
 {
   private static final long serialVersionUID = 1L;
   private char FIELDS_DELIMITER = ';';
