@@ -10,7 +10,6 @@ import java.io.Serializable;
 public class EventClass implements Comparable, Serializable, Cloneable {
 
 	private static final long serialVersionUID = 1L;
-	
 	protected String activityName = null;
 	
 

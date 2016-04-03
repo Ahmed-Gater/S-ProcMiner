@@ -16,14 +16,14 @@ public class ProcInstance implements Serializable
   
   public boolean addEvent(Event e)
   {
-      return (this.getOrderedEvents().put(e.getStart_timestamp(), e) != null); 
+      return (this.getOrderedEvents().put(e.getStartDate(), e) != null); 
   }
   
-  public String getStartEvent(){
+  public EventClass getStartEvent(){
       return this.getOrderedEvents().firstEntry().getValue().getEventClass() ; 
   }
   
-  public String getEndEvent(){
+  public EventClass getEndEvent(){
       return this.getOrderedEvents().lastEntry().getValue().getEventClass() ; 
   }
 
