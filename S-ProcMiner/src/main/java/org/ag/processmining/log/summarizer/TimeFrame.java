@@ -3,6 +3,7 @@
  */
 package org.ag.processmining.log.summarizer;
 
+import java.io.Serializable;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
 
@@ -12,7 +13,9 @@ import org.joda.time.Duration;
  *
  * @author ahmed
  */
-public class TimeFrame {
+public class TimeFrame implements Serializable
+{
+    static final long serialVersionUID = 1L;
     private DateTime startDate = null ;
     private DateTime endDate  = null ; 
 

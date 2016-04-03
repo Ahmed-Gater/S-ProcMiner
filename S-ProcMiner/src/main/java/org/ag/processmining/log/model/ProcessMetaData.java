@@ -5,11 +5,15 @@
  */
 package org.ag.processmining.log.model;
 
+import java.io.Serializable;
+
 /**
  *
  * @author ahmed
  */
-public class ProcessMetaData {
+public class ProcessMetaData implements Serializable {
+
+	private static final long serialVersionUID = 1L;
     
     public final static String CASE_ID_FIELD_NAME= "CASE_ID_FIELD_NAME" ; 
     public final static String EVENT_CLASS_FIELD_NAME = "EVENT_CLASS_FIELD_NAME" ; 

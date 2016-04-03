@@ -7,7 +7,7 @@ import org.joda.time.DateTime;
 public class ProcInstance implements Serializable
 {
     static final long serialVersionUID = 1L;
-  private TreeMap<DateTime,Event> orderedEvents;
+    private TreeMap<DateTime,Event> orderedEvents;
   
   public ProcInstance()
   {

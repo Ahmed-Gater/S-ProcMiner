@@ -9,6 +9,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
+import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 import org.yaml.snakeyaml.Yaml;
@@ -17,26 +18,18 @@ import org.yaml.snakeyaml.Yaml;
  *
  * @author ahmed
  */
-public class AttributeMapping {
+public class AttributeMapping implements Serializable {
+
+	private static final long serialVersionUID = 1L;
     
-    private Map<?, ?> config ; 
+    private Map<?, ?> att_mapping ; 
     private String mappingFilePath ; 
     private static AttributeMapping DATA_MAPPING_INSTANCE = null ; 
     
     
-    private AttributeMapping(String mapFilePath){
+    public AttributeMapping(String mapFilePath){
         this.mappingFilePath = mapFilePath ; 
-        config = load(this.mappingFilePath) ; 
-    }
-    
-    /*
-    
-    */
-    public static AttributeMapping getInstance(String mapFilePath){
-        if (DATA_MAPPING_INSTANCE == null){
-            DATA_MAPPING_INSTANCE = new AttributeMapping(mapFilePath) ;
-        }
-        return DATA_MAPPING_INSTANCE ;
+        att_mapping = load(this.mappingFilePath) ; 
     }
     
     private Map<?, ?> load(String mapFilePath){
@@ -61,22 +54,22 @@ public class AttributeMapping {
     }
     
     public List<String> getCaseIdFields(){
-        return (List<String>)config.get(ProcessMetaData.CASE_ID_FIELD_NAME) ; 
+        return (List<String>)att_mapping.get(ProcessMetaData.CASE_ID_FIELD_NAME) ; 
     }
     
     public String getEventClassField(){
-        return (String) config.get(ProcessMetaData.EVENT_CLASS_FIELD_NAME) ; 
+        return (String) att_mapping.get(ProcessMetaData.EVENT_CLASS_FIELD_NAME) ; 
     }
     
     public String getEventStartTimeField(){
-        return (String) config.get(ProcessMetaData.EVENT_START_TIME_FIELD_NAME) ; 
+        return (String) att_mapping.get(ProcessMetaData.EVENT_START_TIME_FIELD_NAME) ; 
     }
     
     public String getEventEndTimeField(){
-        return (String) config.get(ProcessMetaData.EVENT_END_TIME_FIELD_NAME) ; 
+        return (String) att_mapping.get(ProcessMetaData.EVENT_END_TIME_FIELD_NAME) ; 
     }
     
     public String getOriginatorField(){
-        return (String) config.get(ProcessMetaData.ORIGINATOR_FIELD_NAME) ; 
+        return (String) att_mapping.get(ProcessMetaData.ORIGINATOR_FIELD_NAME) ; 
     }
 }
