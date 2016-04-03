@@ -1,6 +1,9 @@
 package org.ag.processmining.log.summarizer;
 
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.TreeSet;
 import org.ag.processmining.log.model.AttributeMapping;
 import org.ag.processmining.log.model.CaseId;
 import org.ag.processmining.log.model.Event;
@@ -13,6 +16,9 @@ import org.apache.spark.SparkConf ;
 import org.apache.spark.api.java.JavaPairRDD ;
 import org.apache.spark.api.java.JavaRDD ;
 import org.apache.spark.api.java.JavaSparkContext ;
+import org.apache.spark.api.java.function.Function;
+import org.apache.spark.api.java.function.PairFunction;
+import scala.Tuple2;
 
 public class LogSummarizer
 {
@@ -32,14 +38,16 @@ public class LogSummarizer
                                  "h_commentaire" }; 
     
     AttributeMapping att_map = new AttributeMapping(attributeMappingFilePath) ;  
-    SparkConf conf = new SparkConf().setAppName("Workshop").setMaster("local[*]");
+    String applicationName = "Process Mining using Apache Spark" ; 
+    String applicationDesc = "Building statistics about the process" ; 
+    LogSummary ls = new LogSummary(applicationName,applicationDesc) ; 
+    SparkConf conf = new SparkConf().setAppName(applicationName).setMaster("local[*]");
     JavaSparkContext sc = new JavaSparkContext(conf);
     JavaRDD<String> RDDSrc = sc.textFile(sourceFile);
     
 
     // Building Summary data
-    MapToCaseIdEvent MAP_TO_CASE_ID_EVENT = new MapToCaseIdEvent(att_map,event_attributes) ; 
-    JavaPairRDD<CaseId, Event> CASE_ID_EVENT_MAP = RDDSrc.mapToPair(MAP_TO_CASE_ID_EVENT);
+    JavaPairRDD<CaseId, Event> CASE_ID_EVENT_MAP = RDDSrc.mapToPair(new MapToCaseIdEvent(att_map,event_attributes));
     JavaPairRDD<CaseId, ProcInstance> CASE_ID_PROC_INSTANCE =  CASE_ID_EVENT_MAP.groupByKey().mapToPair(MAP_TO_CASE_ID_PROC_INSTANCE) ;
      
     /***************************************************************************
@@ -47,26 +55,39 @@ public class LogSummarizer
       // Number of process instance
       
       long number_process_instances = CASE_ID_PROC_INSTANCE.count();
-      System.out.println("Number of process instances: " + number_process_instances) ;
+      ls.setNumberOfProcessInstances(number_process_instances); 
+      
       // Number of events
       long number_events = RDDSrc.count() ;
-      System.out.println("Number of events: " + number_events) ;
+      ls.setNumberOfEvents(number_events);
       // Event classes
       Map<EventClass, Long> event_class_occurences = CASE_ID_EVENT_MAP.map(EVENT_CLASSES_GETTER).countByValue();
-      System.out.println(event_class_occurences) ;
+      ls.setEventClassOccurences(event_class_occurences);
+     
       // Start event class occurences
       Map<EventClass, Long> start_event_class_occurences = CASE_ID_PROC_INSTANCE.map(START_EVENT_CLASSES).countByValue();
-      System.out.println("Start Event class occurences") ;
-      System.out.println(start_event_class_occurences);
+      ls.setStartingLogEvents(start_event_class_occurences); 
+      
       // End event class occurences
       Map<EventClass, Long> end_event_class_occurences = CASE_ID_PROC_INSTANCE.map(END_EVENT_CLASSES).countByValue();
-      System.out.println("End Event class occurences") ;
-      System.out.println(end_event_class_occurences);
-      // Originators
+      ls.setEndingLogEvents(end_event_class_occurences); 
+     
+      // Originator occurences
       Map<Originator, Long> event_originator_occurences = CASE_ID_EVENT_MAP.map(EVENT_ORIGINATOR).countByValue();
-      System.out.println("Number of originators: " + event_originator_occurences.keySet().size()) ; 
-      System.out.println("Event orignator occurences") ;
-      System.out.println(event_originator_occurences) ;
+      ls.setOriginatorOccurences(event_originator_occurences); 
+       
+      // Originator-EventClass occurences
+      JavaPairRDD<Originator, EventClass> mapToPair = CASE_ID_EVENT_MAP.mapToPair(new PairFunction<Tuple2<CaseId,Event>,Originator,EventClass>(){
+          @Override
+          public Tuple2<Originator, EventClass> call(Tuple2<CaseId, Event> t) throws Exception {
+              return new Tuple2<>(t._2().getOriginator(), t._2().getEventClass()) ;
+          }
+      }); 
+      
+      JavaPairRDD<Originator, Iterable<EventClass>> groupByKey = mapToPair.groupByKey(); 
+      
+      // Printing the summary
+      ls.print();
       
 
   }

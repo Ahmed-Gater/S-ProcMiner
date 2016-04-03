@@ -66,10 +66,18 @@ public final class SparkUtils {
       } ; 
     
     public static final Function<Tuple2<CaseId,Event>,Originator> EVENT_ORIGINATOR = new Function<Tuple2<CaseId,Event>,Originator>(){
-          @Override
-          public Originator call(Tuple2<CaseId, Event> tuple) throws Exception {
-              return tuple._2().getOriginator() ; 
-          }
-      } ; 
+        @Override
+        public Originator call(Tuple2<CaseId, Event> tuple) throws Exception {
+            return tuple._2().getOriginator() ; 
+        }
+    } ; 
+    
+     public static final Function<Tuple2<CaseId,Event>,Originator> ORIGINATOR_EVENT = new Function<Tuple2<CaseId,Event>,Originator>(){
+        @Override
+        public Originator call(Tuple2<CaseId, Event> tuple) throws Exception {
+            return tuple._2().getOriginator() ; 
+        }
+    } ; 
+    
 
 }
