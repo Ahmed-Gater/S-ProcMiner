@@ -17,14 +17,14 @@ import org.yaml.snakeyaml.Yaml;
  *
  * @author ahmed
  */
-public class FieldMapping {
+public class AttributeMapping {
     
     private Map<?, ?> config ; 
     private String mappingFilePath ; 
-    private static FieldMapping DATA_MAPPING_INSTANCE = null ; 
+    private static AttributeMapping DATA_MAPPING_INSTANCE = null ; 
     
     
-    private FieldMapping(String mapFilePath){
+    private AttributeMapping(String mapFilePath){
         this.mappingFilePath = mapFilePath ; 
         config = load(this.mappingFilePath) ; 
     }
@@ -32,9 +32,9 @@ public class FieldMapping {
     /*
     
     */
-    public static FieldMapping getInstance(String mapFilePath){
+    public static AttributeMapping getInstance(String mapFilePath){
         if (DATA_MAPPING_INSTANCE == null){
-            DATA_MAPPING_INSTANCE = new FieldMapping(mapFilePath) ;
+            DATA_MAPPING_INSTANCE = new AttributeMapping(mapFilePath) ;
         }
         return DATA_MAPPING_INSTANCE ;
     }

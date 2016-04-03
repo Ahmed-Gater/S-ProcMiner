@@ -1,10 +1,10 @@
-package org.ag.processmining.logsummarizer;
+package org.ag.processmining.log.summarizer;
 
 import java.util.Map;
 import org.ag.processmining.log.model.CaseId;
 import org.ag.processmining.log.model.Event;
 import org.ag.processmining.log.model.ProcInstance;
-import static org.ag.processmining.logsummarizer.SparkUtils.* ; 
+import static org.ag.processmining.log.summarizer.SparkUtils.* ; 
 import org.apache.spark.SparkConf ;
 import org.apache.spark.api.java.JavaPairRDD ;
 import org.apache.spark.api.java.JavaRDD ;

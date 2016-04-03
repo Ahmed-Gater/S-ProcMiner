@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package org.ag.processmining.logsummarizer;
+package org.ag.processmining.log.summarizer;
 
 import java.util.Iterator;
 import org.ag.processmining.log.model.CaseId;

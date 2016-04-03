@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.util.Map;
 import org.ag.processmining.Utils.DateFormatExtractor;
-import org.ag.processmining.logsummarizer.TimeFrame;
+import org.ag.processmining.log.summarizer.TimeFrame;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
@@ -22,7 +22,7 @@ public class Event implements Serializable
   private TimeFrame timeFrame ; 
   private Map<String, String> data ; 
   
-  public Event(String event_as_string,FieldMapping fMap,String[] event_attributes) throws IOException
+  public Event(String event_as_string,AttributeMapping fMap,String[] event_attributes) throws IOException
   {
     CSVFormat csvFileFormat = CSVFormat.DEFAULT.withHeader(event_attributes).withDelimiter(FIELDS_DELIMITER);
     data = ((CSVRecord)CSVParser.parse(event_as_string, csvFileFormat).getRecords().get(0)).toMap();
@@ -80,30 +80,4 @@ public class Event implements Serializable
 
 }
 
-
-  //private CSVRecord event_as_csv_record;
-  
-  //private String[] CSV_HEADER = { "a_ref_activitee", "h_create_date", "h_dateentree", "h_date_execution", "h_codecorbeille", "h_codestatut", "h_creator", "h_domaine", "h_idaction", "frigo", "qs", "app_premium", "lien_referentiel_aq", "a_canalfrom", "a_canalto", "a_code_apporteur", "a_codecorbeille", "a_domaine", "a_servicepremium", "a_typologie", "h_commentaire" };
-  //private String[] case_id_fields = { "a_ref_activitee" };
-  //private String start_time_field = "h_dateentree";
-  //private String end_time_field = "h_date_execution";
-  //private String event_class_field = "h_codecorbeille" ; 
-  //private String event_originator_field = "h_creator" ; 
-  
-  /*
-  public Event(String event_as_string) throws IOException
-  {
-    CSVFormat csvFileFormat = CSVFormat.DEFAULT.withHeader(this.CSV_HEADER).withDelimiter(this.FIELDS_DELIMITER);
-    this.event_as_csv_record = ((CSVRecord)CSVParser.parse(event_as_string, csvFileFormat).getRecords().get(0));
-    
-    Map<String, String> case_id_field_map = new HashMap();
-    
-    for (String case_id_field : this.case_id_fields) {
-      case_id_field_map.put(case_id_field, this.event_as_csv_record.get(case_id_field));
-    }
-    this.caseId = new CaseId(case_id_field_map);
-    this.start_timestamp = DateFormatExtractor.buildDateTime(this.event_as_csv_record.get(this.start_time_field)) ;//DateTime.parse(this.event_as_csv_record.get(this.start_time_field), this.DATE_FORMAT);
-    this.end_timestamp = DateFormatExtractor.buildDateTime(this.event_as_csv_record.get(this.end_time_field)) ;//DateTime.parse(this.event_as_csv_record.get(this.end_time_field), this.DATE_FORMAT);
-  }
-  */
   

@@ -1,7 +1,7 @@
 /*
  * @author Ahmed Gater (ahmed.gater@gmail.com)
  */
-package org.ag.processmining.logsummarizer;
+package org.ag.processmining.log.summarizer;
 
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
