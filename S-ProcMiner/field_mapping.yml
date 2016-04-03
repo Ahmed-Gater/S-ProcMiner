@@ -1,0 +1,7 @@
+## YAML Template.
+---
+CASE_ID_FIELD_NAME: [a_ref_activitee]
+EVENT_CLASS_FIELD_NAME: h_codecorbeille
+EVENT_START_TIME_FIELD_NAME: h_dateentree 
+EVENT_END_TIME_FIELD_NAME: h_date_execution
+ORIGINATOR_FIELD_NAME: h_creator

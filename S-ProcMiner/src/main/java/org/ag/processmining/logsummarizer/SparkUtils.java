@@ -6,9 +6,9 @@
 package org.ag.processmining.logsummarizer;
 
 import java.util.Iterator;
-import org.ag.processmining.data.CaseId;
-import org.ag.processmining.data.Event;
-import org.ag.processmining.data.ProcInstance;
+import org.ag.processmining.log.model.CaseId;
+import org.ag.processmining.log.model.Event;
+import org.ag.processmining.log.model.ProcInstance;
 import org.apache.spark.api.java.function.Function;
 import org.apache.spark.api.java.function.PairFunction;
 import scala.Tuple2;

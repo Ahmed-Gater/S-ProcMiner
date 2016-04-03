@@ -1,4 +1,4 @@
-package org.ag.processmining.data;
+package org.ag.processmining.log.model;
 
 import java.io.Serializable;
 import java.util.TreeMap;

@@ -7,14 +7,14 @@ import java.io.Serializable;
  * An activity ia an atomic operation of a process.
  */
 
-public class Activity implements Comparable, Serializable, Cloneable {
+public class EventClass implements Comparable, Serializable, Cloneable {
 
 	private static final long serialVersionUID = 1L;
 	
 	protected String activityName = null;
 	
 
-	public Activity(String name) {
+	public EventClass(String name) {
 		activityName = name;
 	}
 
@@ -22,7 +22,7 @@ public class Activity implements Comparable, Serializable, Cloneable {
 		return activityName;
 	}
 
-	public void copy(Activity e) {
+	public void copy(EventClass e) {
 		this.activityName = e.geActivityName();
 	}
 
@@ -34,10 +34,10 @@ public class Activity implements Comparable, Serializable, Cloneable {
 	
         @Override
 	public boolean equals(Object o) {
-            if (o == null || !(o instanceof Activity)) {
+            if (o == null || !(o instanceof EventClass)) {
                 return false;
             }
-            return this.activityName.equals(((Activity) o).geActivityName()) ;
+            return this.activityName.equals(((EventClass) o).geActivityName()) ;
 	}
 	
 	@Override
@@ -54,15 +54,15 @@ public class Activity implements Comparable, Serializable, Cloneable {
 
 	@Override
         public int compareTo(Object o) {
-		Activity toCompare = (Activity) o;
+		EventClass toCompare = (EventClass) o;
 		return this.toString().compareTo(toCompare.toString());
 	}
 
 	@Override
 	public Object clone() {
-            Activity o = null;
+            EventClass o = null;
             try {
-                o = (Activity)super.clone();
+                o = (EventClass)super.clone();
             } catch (CloneNotSupportedException e) {
                 e.printStackTrace();
             }

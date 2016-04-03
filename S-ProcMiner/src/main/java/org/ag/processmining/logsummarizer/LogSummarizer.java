@@ -1,9 +1,9 @@
 package org.ag.processmining.logsummarizer;
 
 import java.util.Map;
-import org.ag.processmining.data.CaseId;
-import org.ag.processmining.data.Event;
-import org.ag.processmining.data.ProcInstance;
+import org.ag.processmining.log.model.CaseId;
+import org.ag.processmining.log.model.Event;
+import org.ag.processmining.log.model.ProcInstance;
 import static org.ag.processmining.logsummarizer.SparkUtils.* ; 
 import org.apache.spark.SparkConf ;
 import org.apache.spark.api.java.JavaPairRDD ;
@@ -57,6 +57,6 @@ public class LogSummarizer
       Map<String, Long> event_originator_occurences = CASE_ID_EVENT_MAP.map(EVENT_ORIGINATOR).countByValue();
       System.out.println("Number of originators: " + event_originator_occurences.keySet().size()) ; 
       System.out.println("Event orignator occurences") ;
-      System.out.println(event_originator_occurences);
+      System.out.println(event_originator_occurences) ;
   }
 }
