@@ -1,4 +1,4 @@
-package org.ag.org.ag.elt_es;
+package org.ag.elt_es;
 
 import edu.emory.mathcs.backport.java.util.Arrays;
 import io.searchbox.client.JestClient;
@@ -9,27 +9,25 @@ import io.searchbox.core.Index;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.api.java.function.VoidFunction;
-import org.ag.org.ag.elt_es.ESUtils.SyncESBulkLoader;
 
 
-public class ESLoader {
+
+public class ESSparkETL {
 
     public static void main(String[] args) {
         if (args.length == 0) {
             System.out.println("There is no argument");
             //return  ;
         }
-
         String sourceFile = "D:/ProcessMiningJavaCode/processming/process_data_set.txt";
-
+        
         final String[] es_hosts = {"http://192.168.1.69:9201"};
         final String applicationName = "Loading HDFS data and pushing them to ES";
-        final int bulkSize = 10;
+        final int bulkSize = 30;
         //final String index_field = "" ; 
         final String type_field = "h_idaction";
         final boolean drop_meta = true;
@@ -50,8 +48,8 @@ public class ESLoader {
         RDDSrc.foreachPartition(new VoidFunction<Iterator<String>>() {
             @Override
             public void call(Iterator<String> it) throws Exception {
-                SyncESBulkLoader sesb = new SyncESBulkLoader(es_hosts);
-                sesb.send(it, time_fields, event_attributes, bulkSize, index, "type");
+                ESBulkLoader sesb = new ESBulkLoader(es_hosts);
+                sesb.SyncCSVIntegration(it, time_fields, event_attributes, bulkSize, index, "type");
             }
         });
 
