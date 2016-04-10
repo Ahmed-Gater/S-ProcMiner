@@ -26,7 +26,7 @@ public final class SparkUtils {
         @Override
         public Tuple2<CaseId, Event> call(String t) throws Exception {
             Event e = new Event(t,att_map,event_attributes);
-            return new Tuple2(e.getCaseId(), e);
+            return new Tuple2(e.getCaseId(), e) ;
         }
     }
     

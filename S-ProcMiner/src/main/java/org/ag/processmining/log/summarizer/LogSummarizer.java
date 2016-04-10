@@ -35,7 +35,7 @@ public class LogSummarizer
                                  "h_codecorbeille", "h_codestatut", "h_creator", "h_domaine", "h_idaction", 
                                  "frigo", "qs", "app_premium", "lien_referentiel_aq", "a_canalfrom", "a_canalto", 
                                  "a_code_apporteur", "a_codecorbeille", "a_domaine", "a_servicepremium", "a_typologie", 
-                                 "h_commentaire" }; 
+                                 "h_commentaire" } ; 
     
     AttributeMapping att_map = new AttributeMapping(attributeMappingFilePath) ;  
     String applicationName = "Process Mining using Apache Spark" ; 
@@ -85,7 +85,7 @@ public class LogSummarizer
       }); 
       
       JavaPairRDD<Originator, Iterable<EventClass>> groupByKey = mapToPair.groupByKey(); 
-      
+      groupByKey.saveAsTextFile("/user/cloudera/test.txt");
       // Printing the summary
       ls.print();
       
