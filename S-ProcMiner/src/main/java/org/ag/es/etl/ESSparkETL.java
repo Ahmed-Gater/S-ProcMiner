@@ -1,13 +1,5 @@
-package org.ag.elt_es;
+package org.ag.es.etl;
 
-import edu.emory.mathcs.backport.java.util.Arrays;
-import io.searchbox.client.JestClient;
-import io.searchbox.client.JestClientFactory;
-import io.searchbox.client.config.HttpClientConfig;
-import io.searchbox.core.DocumentResult;
-import io.searchbox.core.Index;
-import java.io.IOException;
-import java.util.HashMap;
 import java.util.Iterator;
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaRDD;
@@ -41,7 +33,7 @@ public class ESSparkETL {
             "a_code_apporteur", "a_codecorbeille", "a_domaine", "a_servicepremium", "a_typologie",
             "h_commentaire"};
         
-        SparkConf conf = new SparkConf().setAppName(applicationName).setMaster("local[*]");
+        SparkConf conf = new SparkConf().setAppName(applicationName).setMaster("local[*]")  ;
         JavaSparkContext sc = new JavaSparkContext(conf);
         JavaRDD<String> RDDSrc = sc.textFile(sourceFile);
 

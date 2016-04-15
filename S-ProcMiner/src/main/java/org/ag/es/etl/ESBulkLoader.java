@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package org.ag.elt_es;
+package org.ag.es.etl;
 
 import edu.emory.mathcs.backport.java.util.Arrays;
 import io.searchbox.client.JestClient;
@@ -134,7 +134,7 @@ public class ESBulkLoader {
     }
 
     public void handleFailedItems(BulkResult result) {
-        System.out.println(result.getFailedItems().size());
+        //System.out.println(result.getFailedItems().size());
     }
     
     
