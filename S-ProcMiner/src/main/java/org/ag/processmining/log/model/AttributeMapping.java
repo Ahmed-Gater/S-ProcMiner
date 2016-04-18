@@ -72,4 +72,12 @@ public class AttributeMapping implements Serializable {
     public String getOriginatorField(){
         return (String) att_mapping.get(ProcessMetaData.ORIGINATOR_FIELD_NAME) ; 
     }
+    
+    @Override
+    public String toString(){
+        return "CaseId field: " +  this.getCaseIdFields() +
+               "\n Event class field: " + this.getEventClassField() +
+               "\n Start Time stamps field: " + this.getEventStartTimeField() +
+                "\n End time stamps field: " + this.getEventEndTimeField() ; 
+    }
 }
