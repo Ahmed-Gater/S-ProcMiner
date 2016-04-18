@@ -1,12 +1,11 @@
-  
 package org.ag.processmining.log.summarizer;
 
 /**
  *
  * @author ahmed
  */
-
 import java.io.Serializable;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeSet;
 import org.ag.processmining.log.model.AttributeMapping;
@@ -19,90 +18,94 @@ import static org.ag.processmining.log.summarizer.SparkUtils.END_EVENT_CLASSES;
 import static org.ag.processmining.log.summarizer.SparkUtils.EVENT_CLASSES_GETTER;
 import static org.ag.processmining.log.summarizer.SparkUtils.EVENT_ORIGINATOR;
 import static org.ag.processmining.log.summarizer.SparkUtils.MAP_TO_CASE_ID_PROC_INSTANCE;
+import static org.ag.processmining.log.summarizer.SparkUtils.ORIGINATOR_EVENT_CLASS_OCCURENCES;
 import static org.ag.processmining.log.summarizer.SparkUtils.START_EVENT_CLASSES;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
+import org.apache.spark.api.java.function.Function;
 import org.apache.spark.api.java.function.PairFunction;
 import scala.Tuple2;
 
 /**
  *
  */
-public class LogSummary implements Serializable
-{
-    static final long serialVersionUID = 1L;
-        /**
-	 * The name of the logs (e.g. name of the application that generated the logs)
-	 */
-        private String logName = null ; 
-        /**
-	 * The description of the logs (e.g. description of the application that generated the logs)
-	 */
-        private String logDescription = null ;
-        /**
-	 * The time frame of the process instances in the log
-	 */
-	private TimeFrame processTimeFrame = null;
-        /*
-        The total number of events of the log
-        */
-	private long numberOfEvents = 0;
-	/**
-	 * The total number of process instances contained in a log.
-	 */
-	private long numberOfProcessInstances = 0;
-	
-	/**
-	 * Alphabetically ordered set containing as strings the log's event classes
-	 */
-	private TreeSet<EventClass> eventClasses = null;
-	
-	/**
-	 * Mapping from event classes that start a process instance to the
-	 * number of process instances actually start a process instance
-	 */
-	private Map<EventClass, Long> startingLogEvents = null;
-	/**
-	 * Mapping from event classes that end a process instance to the
-	 * number of process instances actually end a process instance
-	 */
-	private Map<EventClass, Long> endingLogEvents = null;
-	
-        /**
-	 * Mapping from event classes to the number of processes they occured in 
-	 */
-	private Map<EventClass, Long> eventClassOccurences = null;
-        
-        /**
-	 * Log originators alphabitically ordered by their name
-	 */
-	private TreeSet<Originator> originators = null;
-	
-        /**
-	 * Mapping from originator to the event classes they execute 
-	 */
-        private Map<Originator, Long> originatorOccurences = null;
-	private Map<Originator, Map<EventClass,Long>> mapOriginatorsToEventClasses = null;
-	
-	
-	/**
-	 * Creates a new log summary.
-	 * @param logName of the summarized log.
-	 * @param logDescription Description of the summarized log.
-	 */
-	public LogSummary(String logName, String logDescription) {
-		this.logName = logName ;
-                this.logDescription = logDescription ;
-	}
+public class LogSummary implements Serializable {
 
-	/**
-	 * Creates a new, empty and initialized lightweight
-	 * log summary instance.
-	 */
-	public LogSummary() {
-		this("", "");
-	}
+    static final long serialVersionUID = 1L;
+    /**
+     * The name of the logs (e.g. name of the application that generated the
+     * logs)
+     */
+    private String logName = null;
+    /**
+     * The description of the logs (e.g. description of the application that
+     * generated the logs)
+     */
+    private String logDescription = null;
+    /**
+     * The time frame of the process instances in the log
+     */
+    private TimeFrame processTimeFrame = null;
+    /*
+        The total number of events of the log
+     */
+    private long numberOfEvents = 0;
+    /**
+     * The total number of process instances contained in a log.
+     */
+    private long numberOfProcessInstances = 0;
+
+    /**
+     * Alphabetically ordered set containing as strings the log's event classes
+     */
+    private TreeSet<EventClass> eventClasses = null;
+
+    /**
+     * Mapping from event classes that start a process instance to the number of
+     * process instances actually start a process instance
+     */
+    private Map<EventClass, Long> startingLogEvents = null;
+    /**
+     * Mapping from event classes that end a process instance to the number of
+     * process instances actually end a process instance
+     */
+    private Map<EventClass, Long> endingLogEvents = null;
+
+    /**
+     * Mapping from event classes to the number of processes they occured in
+     */
+    private Map<EventClass, Long> eventClassOccurences = null;
+
+    /**
+     * Log originators alphabitically ordered by their name
+     */
+    private TreeSet<Originator> originators = null;
+
+    /**
+     * Mapping from originator to the event classes they execute
+     */
+    private Map<Originator, Long> originatorOccurences = null;
+
+    Map<Tuple2<Originator, EventClass>, Long> mapOriginatorEventClassOccurences;
+
+    /**
+     * Creates a new log summary.
+     *
+     * @param logName of the summarized log.
+     * @param logDescription Description of the summarized log.
+     */
+    public LogSummary(String logName, String logDescription) {
+        this.logName = logName;
+        this.logDescription = logDescription;
+    }
+
+    /**
+     * Creates a new, empty and initialized lightweight log summary instance.
+     */
+    public LogSummary() {
+        this("", "");
+    }
 
     /**
      * @return the logName
@@ -224,7 +227,7 @@ public class LogSummary implements Serializable
     }
 
     /**
-     * @param mapEventClassToProcessOccurences the mapEventClassToProcessOccurences to set
+     * @param eventClassOccurences
      */
     public void setEventClassOccurences(Map<EventClass, Long> eventClassOccurences) {
         this.eventClassOccurences = eventClassOccurences;
@@ -243,62 +246,72 @@ public class LogSummary implements Serializable
     public void setOriginators(TreeSet<Originator> originators) {
         this.originators = originators;
     }
-    
+
     /**
-     * @param originator add an originator 
+     * @param originator add an originator
      */
-    public void addOriginator(Originator originator){
-        this.originators.add(originator) ; 
+    public void addOriginator(Originator originator) {
+        this.originators.add(originator);
     }
-    
+
 
     /*
     * set the occurences of originators
-    */
-    public void setOriginatorOccurences(Map<Originator, Long> orgOcc){
-        this.originatorOccurences = orgOcc ;
-        this.originators = new TreeSet<>(orgOcc.keySet()) ; 
-    }
-    
-    /**
-     * @return the occurences of originators
-     * ok
      */
-    public Map<Originator, Long> getOriginatorOccurences(){
-        return this.originatorOccurences ; 
+    public void setOriginatorOccurences(Map<Originator, Long> orgOcc) {
+        this.originatorOccurences = orgOcc;
+        this.originators = new TreeSet<>(orgOcc.keySet());
     }
-    
+
+    /**
+     * @return the occurences of originators ok
+     */
+    public Map<Originator, Long> getOriginatorOccurences() {
+        return this.originatorOccurences;
+    }
+
     /**
      * @return the mapOriginatorsToEventClasses
      */
-    public Map<Originator, Map<EventClass,Long>> getMapOriginatorsToEventClasses() {
-        return mapOriginatorsToEventClasses;
+    public Map<Tuple2<Originator, EventClass>, Long> getMapOriginatorsEventClassesOccurences() {
+        return mapOriginatorEventClassOccurences;
     }
+
     /**
-     * @param mapOriginatorsToEventClasses the mapOriginatorsToEventClasses to set
+     * @param mapOriginatorsToEventClasses the mapOriginatorsToEventClasses to
+     * set
      */
-    public void setMapOriginatorsToEventClasses(Map<Originator, Map<EventClass,Long>> mapOriginatorsToEventClasses) {
-        this.mapOriginatorsToEventClasses = mapOriginatorsToEventClasses;
+    public void setMapOriginatorsEventClassesOccurences(Map<Tuple2<Originator, EventClass>, Object> mapOriginatorsToEventClasses) {
+        this.mapOriginatorEventClassOccurences = new HashMap<>();
+        for (Map.Entry<Tuple2<Originator, EventClass>, Object> e : mapOriginatorsToEventClasses.entrySet()) {
+            this.mapOriginatorEventClassOccurences.put(e.getKey(), (Long) e.getValue());
+        }
     }
-    
-    public void print(){
-        System.out.println("Application name: " +  this.logName) ; 
-        System.out.println("Application description: " + this.logDescription) ; 
-        System.out.println("Number of process instances: " + this.numberOfProcessInstances) ;
-        System.out.println("Number of events: " + this.numberOfEvents) ;
-        System.out.println("Event class occurences:") ;
-        System.out.println(this.eventClassOccurences) ;
-        System.out.println("Start Event class occurences") ;
+
+    public void print() {
+        System.out.println("Application name: " + this.logName);
+        System.out.println("Application description: " + this.logDescription);
+        System.out.println("Number of process instances: " + this.numberOfProcessInstances);
+        System.out.println("Number of events: " + this.numberOfEvents);
+        System.out.println("Event class occurences:");
+        System.out.println(this.eventClassOccurences);
+        System.out.println("Start Event class occurences");
         System.out.println(this.startingLogEvents);
-        System.out.println("End Event class occurences") ;
+        System.out.println("End Event class occurences");
         System.out.println(this.endingLogEvents);
-        System.out.println("Number of originators: " + this.originators.size()) ; 
-        System.out.println("Orignator occurences") ;
-        System.out.println(this.eventClassOccurences) ;
+        System.out.println("Number of originators: " + this.originators.size());
+        System.out.println("Orignator occurences");
+        for (Map.Entry<Originator, Long> e : getOriginatorOccurences().entrySet()) {
+            System.out.println(e.getKey() + "," + e.getValue());
+        }
+        System.out.println("Occurences by (Originator and event class)");
+        for (Map.Entry<Tuple2<Originator, EventClass>, Long> e : getMapOriginatorsEventClassesOccurences().entrySet()) {
+            System.out.println(e.getKey()._1() + "," + e.getKey()._2() + "," + e.getValue());
+        }
     }
-    
-    public static LogSummary buildSummary(JavaSparkContext sc, String appliName, String appliDesc , String sourceFile, String[] event_attributes, AttributeMapping att_map) {
-        
+
+    public static LogSummary buildSummary(JavaSparkContext sc, String appliName, String appliDesc, String sourceFile, String[] event_attributes, AttributeMapping att_map) {
+
         LogSummary ls = new LogSummary(appliName, appliDesc);
         JavaRDD<String> RDDSrc = sc.textFile(sourceFile);
         // Building Summary data
@@ -306,7 +319,7 @@ public class LogSummary implements Serializable
         JavaPairRDD<CaseId, ProcInstance> CASE_ID_PROC_INSTANCE = CASE_ID_EVENT_MAP.groupByKey().mapToPair(MAP_TO_CASE_ID_PROC_INSTANCE);
 
         /**
-         * *************************************************************************
+         *************************************************************************
          *************************************************************************
          */
         // Number of process instance
@@ -333,12 +346,8 @@ public class LogSummary implements Serializable
         ls.setOriginatorOccurences(event_originator_occurences);
 
         // Originator-EventClass occurences
-        JavaPairRDD<Originator, EventClass> mapToPair = CASE_ID_EVENT_MAP.mapToPair(new PairFunction<Tuple2<CaseId, Event>, Originator, EventClass>() {
-            @Override
-            public Tuple2<Originator, EventClass> call(Tuple2<CaseId, Event> t) throws Exception {
-                return new Tuple2<>(t._2().getOriginator(), t._2().getEventClass());
-            }
-        });
+        Map<Tuple2<Originator, EventClass>, Object> mapOriginatorsToEventClassesOccs = CASE_ID_EVENT_MAP.mapToPair(ORIGINATOR_EVENT_CLASS_OCCURENCES).countByKey();
+        ls.setMapOriginatorsEventClassesOccurences(mapOriginatorsToEventClassesOccs);
 
         return ls;
     }
