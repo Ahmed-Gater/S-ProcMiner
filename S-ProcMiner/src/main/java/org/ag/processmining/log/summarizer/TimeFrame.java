@@ -3,29 +3,27 @@
  */
 package org.ag.processmining.log.summarizer;
 
-import java.io.Serializable;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
 
+import java.io.Serializable;
 
 
 /**
- *
  * @author ahmed
  */
-public class TimeFrame implements Serializable
-{
+public class TimeFrame implements Serializable {
     static final long serialVersionUID = 1L;
-    private DateTime startDate = null ;
-    private DateTime endDate  = null ; 
+    private DateTime startDate = null;
+    private DateTime endDate = null;
 
-    public TimeFrame(){
-        
+    public TimeFrame() {
+
     }
-    
-    public TimeFrame(DateTime start, DateTime end){
-        this.startDate = start ; 
-        this.endDate = end ; 
+
+    public TimeFrame(DateTime start, DateTime end) {
+        this.startDate = start;
+        this.endDate = end;
     }
 
     /**
@@ -55,13 +53,12 @@ public class TimeFrame implements Serializable
     public void setEndDate(DateTime endDate) {
         this.endDate = endDate;
     }
-		
-    public Duration getDuration()
-  {
-    if (this.startDate != null && this.endDate != null) {
-      return new Duration(startDate.getMillis(),endDate.getMillis());
+
+    public Duration getDuration() {
+        if (this.startDate != null && this.endDate != null) {
+            return new Duration(startDate.getMillis( ), endDate.getMillis( ));
+        }
+        return Duration.ZERO;
     }
-    return Duration.ZERO;
-  }
-	
+
 }

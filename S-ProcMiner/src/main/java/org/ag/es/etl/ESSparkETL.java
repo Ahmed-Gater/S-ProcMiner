@@ -1,11 +1,11 @@
 package org.ag.es.etl;
 
 import java.util.Iterator;
+
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.api.java.function.VoidFunction;
-
 
 
 public class ESSparkETL {
@@ -16,7 +16,7 @@ public class ESSparkETL {
             //return  ;
         }
         String sourceFile = "D:/ProcessMiningJavaCode/processming/process_data_set.txt";
-        
+
         final String[] es_hosts = {"http://192.168.1.69:9201"};
         final String applicationName = "Loading HDFS data and pushing them to ES";
         final int bulkSize = 30;
@@ -28,16 +28,16 @@ public class ESSparkETL {
         //final String id_field = "" ; 
         final String[] time_fields = {"h_dateentree"};
         final String[] event_attributes = {"a_ref_activitee", "h_create_date", "h_dateentree", "h_date_execution",
-            "h_codecorbeille", "h_codestatut", "h_creator", "h_domaine", "h_idaction",
-            "frigo", "qs", "app_premium", "lien_referentiel_aq", "a_canalfrom", "a_canalto",
-            "a_code_apporteur", "a_codecorbeille", "a_domaine", "a_servicepremium", "a_typologie",
-            "h_commentaire"};
-        
-        SparkConf conf = new SparkConf().setAppName(applicationName).setMaster("local[*]")  ;
+                "h_codecorbeille", "h_codestatut", "h_creator", "h_domaine", "h_idaction",
+                "frigo", "qs", "app_premium", "lien_referentiel_aq", "a_canalfrom", "a_canalto",
+                "a_code_apporteur", "a_codecorbeille", "a_domaine", "a_servicepremium", "a_typologie",
+                "h_commentaire"};
+
+        SparkConf conf = new SparkConf( ).setAppName(applicationName).setMaster("local[*]");
         JavaSparkContext sc = new JavaSparkContext(conf);
         JavaRDD<String> RDDSrc = sc.textFile(sourceFile);
 
-        RDDSrc.foreachPartition(new VoidFunction<Iterator<String>>() {
+        RDDSrc.foreachPartition(new VoidFunction<Iterator<String>>( ) {
             @Override
             public void call(Iterator<String> it) throws Exception {
                 ESBulkLoader sesb = new ESBulkLoader(es_hosts);
@@ -45,7 +45,7 @@ public class ESSparkETL {
             }
         });
 
-        System.out.println("Number of entries: " + RDDSrc.count());
+        System.out.println("Number of entries: " + RDDSrc.count( ));
 
     }
 }

@@ -1,31 +1,27 @@
 package org.ag.processmining.log.summarizer;
 
 /**
- *
  * @author ahmed
  */
-import java.io.Serializable;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.TreeSet;
-import org.ag.processmining.log.model.AttributeMapping;
-import org.ag.processmining.log.model.CaseId;
-import org.ag.processmining.log.model.Event;
-import org.ag.processmining.log.model.EventClass;
-import org.ag.processmining.log.model.Originator;
-import org.ag.processmining.log.model.ProcInstance;
-import static org.ag.processmining.log.summarizer.SparkUtils.END_EVENT_CLASSES;
-import static org.ag.processmining.log.summarizer.SparkUtils.EVENT_CLASSES_GETTER;
-import static org.ag.processmining.log.summarizer.SparkUtils.EVENT_ORIGINATOR;
-import static org.ag.processmining.log.summarizer.SparkUtils.MAP_TO_CASE_ID_PROC_INSTANCE;
-import static org.ag.processmining.log.summarizer.SparkUtils.ORIGINATOR_EVENT_CLASS_OCCURENCES;
-import static org.ag.processmining.log.summarizer.SparkUtils.START_EVENT_CLASSES;
+
+import org.ag.processmining.log.model.*;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
+import org.apache.spark.api.java.function.DoubleFunction;
 import org.apache.spark.api.java.function.Function;
-import org.apache.spark.api.java.function.PairFunction;
+import org.apache.spark.util.StatCounter;
+import org.joda.time.DateTime;
 import scala.Tuple2;
+
+import java.io.Serializable;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.TreeSet;
+
+import static org.ag.processmining.log.summarizer.SparkUtils.EVENT_CLASSES_GETTER;
+import static org.ag.processmining.log.summarizer.SparkUtils.MAP_TO_CASE_ID_PROC_INSTANCE;
 
 /**
  *
@@ -33,6 +29,7 @@ import scala.Tuple2;
 public class LogSummary implements Serializable {
 
     static final long serialVersionUID = 1L;
+    Map<Tuple2<Originator, EventClass>, Long> mapOriginatorEventClassOccurences;
     /**
      * The name of the logs (e.g. name of the application that generated the
      * logs)
@@ -56,10 +53,16 @@ public class LogSummary implements Serializable {
      */
     private long numberOfProcessInstances = 0;
 
-    /**
-     * Alphabetically ordered set containing as strings the log's event classes
+    /*
+    Case duration stats
      */
-    private TreeSet<EventClass> eventClasses = null;
+    private StatCounter caseDurationStats ;
+
+    /*
+    Case size stats
+     */
+    private StatCounter caseSizeStats ;
+
 
     /**
      * Mapping from event classes that start a process instance to the number of
@@ -71,28 +74,26 @@ public class LogSummary implements Serializable {
      * process instances actually end a process instance
      */
     private Map<EventClass, Long> endingLogEvents = null;
-
     /**
      * Mapping from event classes to the number of processes they occured in
      */
     private Map<EventClass, Long> eventClassOccurences = null;
-
     /**
      * Log originators alphabitically ordered by their name
      */
     private TreeSet<Originator> originators = null;
-
     /**
      * Mapping from originator to the event classes they execute
      */
     private Map<Originator, Long> originatorOccurences = null;
 
-    Map<Tuple2<Originator, EventClass>, Long> mapOriginatorEventClassOccurences;
+
+    private TreeSet<EventClass> eventClasses;
 
     /**
      * Creates a new log summary.
      *
-     * @param logName of the summarized log.
+     * @param logName        of the summarized log.
      * @param logDescription Description of the summarized log.
      */
     public LogSummary(String logName, String logDescription) {
@@ -106,6 +107,98 @@ public class LogSummary implements Serializable {
     public LogSummary() {
         this("", "");
     }
+
+    public static LogSummary buildSummary(JavaSparkContext sc, String appliName, String appliDesc, String sourceFile, String[] event_attributes, AttributeMapping att_map) {
+
+        LogSummary ls = new LogSummary(appliName, appliDesc);
+        JavaRDD<String> RDDSrc = sc.textFile(sourceFile);
+        // Building Summary data
+        JavaPairRDD<CaseId, Event> CASE_ID_EVENT_MAP = RDDSrc.mapToPair(new SparkUtils.MapToCaseIdEvent(att_map, event_attributes));
+        JavaPairRDD<CaseId, ProcInstance> CASE_ID_PROC_INSTANCE = CASE_ID_EVENT_MAP.groupByKey( ).mapToPair(MAP_TO_CASE_ID_PROC_INSTANCE);
+        /**
+         *************************************************************************
+         *************************************************************************
+         */
+        // Number of process instance
+        ls.setNumberOfProcessInstances(CASE_ID_PROC_INSTANCE.count( ));
+
+        // Number of events
+        ls.setNumberOfEvents(RDDSrc.count( ));
+
+        // Event classes
+        ls.setEventClassOccurences(CASE_ID_EVENT_MAP.map(EVENT_CLASSES_GETTER).countByValue( ));
+
+        // Mean, Max, Min, Std duration of cases
+        ls.caseDurationStats = CASE_ID_PROC_INSTANCE.mapToDouble(new DoubleFunction<Tuple2<CaseId, ProcInstance>>( ) {
+            @Override
+            public double call(Tuple2<CaseId, ProcInstance> t) throws Exception {
+                return t._2( ).getDuration( );
+            }
+        }).stats( );
+        // Mean, Max, Min and Std of case size (number of events)
+        ls.caseSizeStats = CASE_ID_PROC_INSTANCE.mapToDouble(new DoubleFunction<Tuple2<CaseId, ProcInstance>>( ) {
+            @Override
+            public double call(Tuple2<CaseId, ProcInstance> t) throws Exception {
+                return t._2( ).getSize();
+            }
+        }).stats( );
+
+        // First and Last event date
+        DateTime logStartDate = CASE_ID_PROC_INSTANCE.map(new Function<Tuple2<CaseId, ProcInstance>, DateTime>( ) {
+            @Override
+            public DateTime call(Tuple2<CaseId, ProcInstance> t) throws Exception {
+                return t._2().getStartTS();
+            }
+        }).min(new DateTimeComparator()) ;
+
+        DateTime logEndDate = CASE_ID_PROC_INSTANCE.map(new Function<Tuple2<CaseId, ProcInstance>, DateTime>( ) {
+            @Override
+            public DateTime call(Tuple2<CaseId, ProcInstance> t) throws Exception {
+                return t._2().getEndTS();
+            }
+        }).max(new DateTimeComparator()) ;
+
+        System.out.println("Start process: " + logStartDate) ;
+        System.out.println("End process: " + logEndDate) ;
+        ls.processTimeFrame = new TimeFrame(logStartDate,logEndDate) ;
+
+        // Events over time
+        JavaRDD<DateTime> map  = CASE_ID_EVENT_MAP.map(new Function<Tuple2<CaseId, Event>, DateTime>( ) {
+            @Override
+            public DateTime call(Tuple2<CaseId, Event> t) throws Exception {
+                DateTime dt = t._2( ).getStartDate() ;
+                return new DateTime(dt.getYear(), dt.getMonthOfYear(), dt.getDayOfMonth(),0, 0) ;
+            }
+        });
+        Map<DateTime, Long> stringLongMap = map.countByValue( );
+        for(Map.Entry<DateTime,Long> e : stringLongMap.entrySet()){
+            System.out.println(e.getKey() + " --> " + e.getValue()) ;
+        }
+        /*
+        // Start event class occurences
+
+        Map<EventClass, Long> start_event_class_occurences = CASE_ID_PROC_INSTANCE.map(START_EVENT_CLASSES).countByValue( );
+        ls.setStartingLogEvents(start_event_class_occurences);
+
+        // End event class occurences
+        Map<EventClass, Long> end_event_class_occurences = CASE_ID_PROC_INSTANCE.map(END_EVENT_CLASSES).countByValue( );
+        ls.setEndingLogEvents(end_event_class_occurences);
+
+        // Originator occurences
+        Map<Originator, Long> event_originator_occurences = CASE_ID_EVENT_MAP.map(EVENT_ORIGINATOR).countByValue( );
+        ls.setOriginatorOccurences(event_originator_occurences);
+
+        // Originator-EventClass occurences
+        Map<Tuple2<Originator, EventClass>, Object> mapOriginatorsToEventClassesOccs = CASE_ID_EVENT_MAP.mapToPair(ORIGINATOR_EVENT_CLASS_OCCURENCES).countByKey( );
+        ls.setMapOriginatorsEventClassesOccurences(mapOriginatorsToEventClassesOccs);
+
+        // Case Statistics
+
+        */
+        ls.print();
+        return ls;
+    }
+
 
     /**
      * @return the logName
@@ -181,7 +274,10 @@ public class LogSummary implements Serializable {
      * @return the eventClasses
      */
     public TreeSet<EventClass> getEventClasses() {
-        return eventClasses;
+        if (this.eventClasses == null) {
+            this.eventClasses = new TreeSet<>(eventClassOccurences.keySet( ));
+        }
+        return this.eventClasses;
     }
 
     /**
@@ -254,20 +350,19 @@ public class LogSummary implements Serializable {
         this.originators.add(originator);
     }
 
+    /**
+     * @return the occurences of originators ok
+     */
+    public Map<Originator, Long> getOriginatorOccurences() {
+        return this.originatorOccurences;
+    }
 
     /*
     * set the occurences of originators
      */
     public void setOriginatorOccurences(Map<Originator, Long> orgOcc) {
         this.originatorOccurences = orgOcc;
-        this.originators = new TreeSet<>(orgOcc.keySet());
-    }
-
-    /**
-     * @return the occurences of originators ok
-     */
-    public Map<Originator, Long> getOriginatorOccurences() {
-        return this.originatorOccurences;
+        this.originators = new TreeSet<>(orgOcc.keySet( ));
     }
 
     /**
@@ -279,76 +374,68 @@ public class LogSummary implements Serializable {
 
     /**
      * @param mapOriginatorsToEventClasses the mapOriginatorsToEventClasses to
-     * set
+     *                                     set
      */
     public void setMapOriginatorsEventClassesOccurences(Map<Tuple2<Originator, EventClass>, Object> mapOriginatorsToEventClasses) {
-        this.mapOriginatorEventClassOccurences = new HashMap<>();
-        for (Map.Entry<Tuple2<Originator, EventClass>, Object> e : mapOriginatorsToEventClasses.entrySet()) {
-            this.mapOriginatorEventClassOccurences.put(e.getKey(), (Long) e.getValue());
+        this.mapOriginatorEventClassOccurences = new HashMap<>( );
+        for (Map.Entry<Tuple2<Originator, EventClass>, Object> e : mapOriginatorsToEventClasses.entrySet( )) {
+            this.mapOriginatorEventClassOccurences.put(e.getKey( ), (Long) e.getValue( ));
         }
     }
 
     public void print() {
         System.out.println("Application name: " + this.logName);
         System.out.println("Application description: " + this.logDescription);
-        System.out.println("Number of process instances: " + this.numberOfProcessInstances);
         System.out.println("Number of events: " + this.numberOfEvents);
+        System.out.println("Number of cases: " + this.numberOfProcessInstances);
+        System.out.println("Number of activities: " + this.getEventClasses( ).size( ));
+        System.out.println("Case duration: (min," + this.caseDurationStats.min() +
+                            "), (max, " + this.caseDurationStats.max() +
+                            "), (mean, " + this.caseDurationStats.mean() +
+                            "), (std, " + this.caseDurationStats.stdev() + ")"
+                            ) ;
+
+        System.out.println("Case size: (min," + this.caseSizeStats.min() +
+                "), (max, " + this.caseSizeStats.max() +
+                "), (mean, " + this.caseSizeStats.mean() +
+                "), (std, " + this.caseSizeStats.stdev() + ")"
+        ) ;
+
+        System.out.println("Log Time Frame (start ts,end ts): (" + this.getProcessTimeFrame( ).getStartDate( ) + " , " + this.getProcessTimeFrame( ).getEndDate( ) + ")");
+
+
+
+        /*
         System.out.println("Event class occurences:");
         System.out.println(this.eventClassOccurences);
         System.out.println("Start Event class occurences");
         System.out.println(this.startingLogEvents);
         System.out.println("End Event class occurences");
         System.out.println(this.endingLogEvents);
-        System.out.println("Number of originators: " + this.originators.size());
+        System.out.println("Number of originators: " + this.originators.size( ));
         System.out.println("Orignator occurences");
-        for (Map.Entry<Originator, Long> e : getOriginatorOccurences().entrySet()) {
-            System.out.println(e.getKey() + "," + e.getValue());
+
+        for (Map.Entry<Originator, Long> e : getOriginatorOccurences( ).entrySet( )) {
+            System.out.println(e.getKey( ) + "," + e.getValue( ));
         }
         System.out.println("Occurences by (Originator and event class)");
-        for (Map.Entry<Tuple2<Originator, EventClass>, Long> e : getMapOriginatorsEventClassesOccurences().entrySet()) {
-            System.out.println(e.getKey()._1() + "," + e.getKey()._2() + "," + e.getValue());
+        for (Map.Entry<Tuple2<Originator, EventClass>, Long> e : getMapOriginatorsEventClassesOccurences( ).entrySet( )) {
+            System.out.println(e.getKey( )._1( ) + "," + e.getKey( )._2( ) + "," + e.getValue( ));
+        }
+        */
+    }
+
+    private static class DoubleComparator implements Comparator<Double>, Serializable {
+        @Override
+        public int compare(Double o1, Double o2) {
+            return o1.compareTo(o2);
         }
     }
 
-    public static LogSummary buildSummary(JavaSparkContext sc, String appliName, String appliDesc, String sourceFile, String[] event_attributes, AttributeMapping att_map) {
-
-        LogSummary ls = new LogSummary(appliName, appliDesc);
-        JavaRDD<String> RDDSrc = sc.textFile(sourceFile);
-        // Building Summary data
-        JavaPairRDD<CaseId, Event> CASE_ID_EVENT_MAP = RDDSrc.mapToPair(new SparkUtils.MapToCaseIdEvent(att_map, event_attributes));
-        JavaPairRDD<CaseId, ProcInstance> CASE_ID_PROC_INSTANCE = CASE_ID_EVENT_MAP.groupByKey().mapToPair(MAP_TO_CASE_ID_PROC_INSTANCE);
-
-        /**
-         *************************************************************************
-         *************************************************************************
-         */
-        // Number of process instance
-        long number_process_instances = CASE_ID_PROC_INSTANCE.count();
-        ls.setNumberOfProcessInstances(number_process_instances);
-
-        // Number of events
-        long number_events = RDDSrc.count();
-        ls.setNumberOfEvents(number_events);
-        // Event classes
-        Map<EventClass, Long> event_class_occurences = CASE_ID_EVENT_MAP.map(EVENT_CLASSES_GETTER).countByValue();
-        ls.setEventClassOccurences(event_class_occurences);
-
-        // Start event class occurences
-        Map<EventClass, Long> start_event_class_occurences = CASE_ID_PROC_INSTANCE.map(START_EVENT_CLASSES).countByValue();
-        ls.setStartingLogEvents(start_event_class_occurences);
-
-        // End event class occurences
-        Map<EventClass, Long> end_event_class_occurences = CASE_ID_PROC_INSTANCE.map(END_EVENT_CLASSES).countByValue();
-        ls.setEndingLogEvents(end_event_class_occurences);
-
-        // Originator occurences
-        Map<Originator, Long> event_originator_occurences = CASE_ID_EVENT_MAP.map(EVENT_ORIGINATOR).countByValue();
-        ls.setOriginatorOccurences(event_originator_occurences);
-
-        // Originator-EventClass occurences
-        Map<Tuple2<Originator, EventClass>, Object> mapOriginatorsToEventClassesOccs = CASE_ID_EVENT_MAP.mapToPair(ORIGINATOR_EVENT_CLASS_OCCURENCES).countByKey();
-        ls.setMapOriginatorsEventClassesOccurences(mapOriginatorsToEventClassesOccs);
-
-        return ls;
+    private static class DateTimeComparator implements Comparator<DateTime>, Serializable {
+        @Override
+        public int compare(DateTime o1, DateTime o2) {
+            return o1.compareTo(o2);
+        }
     }
 }
