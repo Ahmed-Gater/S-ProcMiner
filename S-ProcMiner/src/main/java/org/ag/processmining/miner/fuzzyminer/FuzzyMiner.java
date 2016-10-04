@@ -1,22 +1,17 @@
 package org.ag.processmining.miner.fuzzyminer;
 
-import org.ag.processmining.log.summarizer.*;
-import java.util.Map;
 import org.ag.processmining.log.model.AttributeMapping;
 import org.ag.processmining.log.model.CaseId;
 import org.ag.processmining.log.model.Event;
-import org.ag.processmining.log.model.EventClass;
-import org.ag.processmining.log.model.Originator;
 import org.ag.processmining.log.model.ProcInstance;
-import static org.ag.processmining.log.summarizer.SparkUtils.* ; 
+import org.ag.processmining.log.summarizer.LogSummary;
 import org.ag.processmining.log.summarizer.SparkUtils.MapToCaseIdEvent;
-import org.apache.spark.SparkConf ;
-import org.apache.spark.api.java.JavaPairRDD ;
-import org.apache.spark.api.java.JavaRDD ;
-import org.apache.spark.api.java.JavaSparkContext ;
-import org.apache.spark.api.java.function.PairFunction;
-import scala.Tuple2;
+import org.apache.spark.SparkConf;
+import org.apache.spark.api.java.JavaPairRDD;
+import org.apache.spark.api.java.JavaRDD;
+import org.apache.spark.api.java.JavaSparkContext;
 
+import static org.ag.processmining.log.summarizer.SparkUtils.MAP_TO_CASE_ID_PROC_INSTANCE;
 public class FuzzyMiner
 {
   public static void main(String[] args)
