@@ -9,13 +9,18 @@ import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.api.java.function.DoubleFunction;
+import org.apache.spark.api.java.function.FlatMapFunction;
 import org.apache.spark.api.java.function.Function;
 import org.apache.spark.util.StatCounter;
 import org.joda.time.DateTime;
 import scala.Tuple2;
 
 import java.io.Serializable;
-import java.util.*;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.TreeSet;
+import java.util.concurrent.TimeUnit;
 
 import static org.ag.processmining.log.summarizer.SparkUtils.EVENT_CLASSES_GETTER;
 import static org.ag.processmining.log.summarizer.SparkUtils.MAP_TO_CASE_ID_PROC_INSTANCE;
@@ -64,6 +69,27 @@ public class LogSummary implements Serializable {
     Histogram of Events over time
      */
     Map<DateTime, Long> eventsOverTime ;
+
+    /*
+    Active cases over time
+     */
+    Map<DateTime, Long> activeCasesOverTime ;
+
+    /*
+    Histogram of events by cases (Histogram showing the distribution of case sizes (number of events)
+     */
+    Map<Integer, Long> caseSizeDistribution ;
+
+    /*
+    Case duration histogram
+     */
+    Map<Long, Long> caseDurationHistogram ;
+
+    /*
+    Mean Activity duration histogram
+     */
+    Map<Long, Long> caseActivityMeanDurationHistogram ;
+
     /**
      * Mapping from event classes that start a process instance to the number of
      * process instances actually start a process instance
@@ -132,7 +158,7 @@ public class LogSummary implements Serializable {
         ls.caseDurationStats = CASE_ID_PROC_INSTANCE.mapToDouble(new DoubleFunction<Tuple2<CaseId, ProcInstance>>( ) {
             @Override
             public double call(Tuple2<CaseId, ProcInstance> t) throws Exception {
-                return t._2( ).getDuration( );
+                return t._2( ).getDuration(TimeUnit.DAYS);
             }
         }).stats( );
         // Mean, Max, Min and Std of case size (number of events)
@@ -172,6 +198,40 @@ public class LogSummary implements Serializable {
         }).countByValue( );
 
         // Active cases over time
+        ls.activeCasesOverTime = CASE_ID_PROC_INSTANCE.flatMap(new FlatMapFunction<Tuple2<CaseId, ProcInstance>, DateTime>( ) {
+            @Override
+            public Iterable<DateTime> call(Tuple2<CaseId, ProcInstance> t) throws Exception {
+                return t._2( ).getActiveDays( );
+            }
+        }).countByValue( );
+
+        // Histogram of events by case
+        ls.caseSizeDistribution = CASE_ID_PROC_INSTANCE.map(new Function<Tuple2<CaseId, ProcInstance>, Integer>( ) {
+            @Override
+            public Integer call(Tuple2<CaseId, ProcInstance> t) throws Exception {
+                return t._2( ).getSize( );
+            }
+        }).countByValue( );
+
+        // Histogram of duration
+        ls.caseDurationHistogram = CASE_ID_PROC_INSTANCE.map(new Function<Tuple2<CaseId, ProcInstance>, Long>( ) {
+            @Override
+            public Long call(Tuple2<CaseId, ProcInstance> t) throws Exception {
+                return t._2( ).getDuration(TimeUnit.DAYS);
+            }
+        }).countByValue();
+
+
+        /*
+        Mean Activity duration (est la moyenne des durees des activites)
+         */
+        ls.caseActivityMeanDurationHistogram = CASE_ID_PROC_INSTANCE.map(new Function<Tuple2<CaseId, ProcInstance>, Long>( ) {
+            Long timeBucket = 1L ;
+            @Override
+            public Long call(Tuple2<CaseId, ProcInstance> t) throws Exception {
+                return (t._2( ).getMeanActivityDuration(TimeUnit.HOURS)/timeBucket)*timeBucket ;
+            }
+        }).countByValue( );
 
         /*
         // Start event class occurences
@@ -407,7 +467,25 @@ public class LogSummary implements Serializable {
             System.out.println(e.getKey() + " -> " + e.getValue()) ;
         }
 
+        System.out.println("Number of active cases over time") ;
+        for (Map.Entry<DateTime,Long> e : this.activeCasesOverTime.entrySet()){
+            System.out.println(e.getKey() + " -> " + e.getValue()) ;
+        }
 
+        System.out.println("Distribution of case size") ;
+        for(Map.Entry<Integer,Long> e : this.caseSizeDistribution.entrySet()){
+            System.out.println(e.getKey() + " --> " + e.getValue()) ;
+        }
+
+        System.out.println("Case duration histogram") ;
+        for(Map.Entry<Long,Long> e : this.caseDurationHistogram.entrySet()){
+            System.out.println(e.getKey() + " --> " + e.getValue() ) ;
+        }
+
+        System.out.println("Case activity mean duration histogram") ;
+        for(Map.Entry<Long,Long> e : caseActivityMeanDurationHistogram.entrySet()){
+            System.out.println(e.getKey() + " --> " + e.getValue()) ;
+        }
         /*
         System.out.println("Event class occurences:");
         System.out.println(this.eventClassOccurences);

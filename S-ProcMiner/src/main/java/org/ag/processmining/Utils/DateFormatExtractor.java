@@ -5,6 +5,8 @@ import org.joda.time.format.DateTimeFormat;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set ;
+import java.util.HashSet ;
 
 public class DateFormatExtractor {
 
@@ -57,9 +59,20 @@ public class DateFormatExtractor {
     }
 
     public static void main(String[] args) {
-        String s = "2011/02/23 00:31:31.000";
-        String k = determineDateFormat(s);
-        System.out.println(k);
-        //String regex = "^\\d{4}/\\d{2}/\\d{2} \\d{2}:\\d{2}:\\d{2}.\\d{3}$" ;
+
+
+
+
+        DateTime firstDateRef = new DateTime(2016, 10, 1, 0, 0);
+        DateTime lastDateRef = new DateTime(2016, 10, 10, 0, 0);
+        Set<DateTime> t = new HashSet<>( );
+        while (firstDateRef.compareTo(lastDateRef) <= 0) {
+            t.add(firstDateRef);
+            System.out.println(firstDateRef.toString()) ;
+            firstDateRef = firstDateRef.plusDays(1);
+        }
+
+
+
     }
 }

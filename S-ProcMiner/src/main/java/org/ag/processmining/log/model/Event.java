@@ -8,11 +8,11 @@ import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 import org.joda.time.DateTime;
-import org.joda.time.Duration;
 
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 @Setter
 @Getter
@@ -78,8 +78,17 @@ public class Event implements Serializable {
         return this.timeFrame.getEndDate( );
     }
 
-    public Duration getDuration() {
-        return this.timeFrame.getDuration( );
+    public Long getDuration(TimeUnit tu) {
+        if (tu.equals(TimeUnit.DAYS)) {
+            return this.timeFrame.getDuration().getStandardDays() ;
+        } else if (tu.equals(TimeUnit.HOURS)) {
+            return this.timeFrame.getDuration().getStandardHours( );
+        } else if (tu.equals(TimeUnit.MINUTES)) {
+            return this.timeFrame.getDuration().getStandardMinutes( );
+        } else if (tu.equals(TimeUnit.SECONDS)) {
+            return this.timeFrame.getDuration().getStandardSeconds( );
+        }
+        return -1L ;
     }
 
     public Originator getOriginator() {
