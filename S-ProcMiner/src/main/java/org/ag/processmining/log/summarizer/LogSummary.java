@@ -15,10 +15,7 @@ import org.joda.time.DateTime;
 import scala.Tuple2;
 
 import java.io.Serializable;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.TreeSet;
+import java.util.*;
 
 import static org.ag.processmining.log.summarizer.SparkUtils.EVENT_CLASSES_GETTER;
 import static org.ag.processmining.log.summarizer.SparkUtils.MAP_TO_CASE_ID_PROC_INSTANCE;
@@ -63,7 +60,10 @@ public class LogSummary implements Serializable {
      */
     private StatCounter caseSizeStats ;
 
-
+    /*
+    Histogram of Events over time
+     */
+    Map<DateTime, Long> eventsOverTime ;
     /**
      * Mapping from event classes that start a process instance to the number of
      * process instances actually start a process instance
@@ -163,17 +163,16 @@ public class LogSummary implements Serializable {
         ls.processTimeFrame = new TimeFrame(logStartDate,logEndDate) ;
 
         // Events over time
-        JavaRDD<DateTime> map  = CASE_ID_EVENT_MAP.map(new Function<Tuple2<CaseId, Event>, DateTime>( ) {
+        ls.eventsOverTime = CASE_ID_EVENT_MAP.map(new Function<Tuple2<CaseId, Event>, DateTime>( ) {
             @Override
             public DateTime call(Tuple2<CaseId, Event> t) throws Exception {
                 DateTime dt = t._2( ).getStartDate() ;
                 return new DateTime(dt.getYear(), dt.getMonthOfYear(), dt.getDayOfMonth(),0, 0) ;
             }
-        });
-        Map<DateTime, Long> stringLongMap = map.countByValue( );
-        for(Map.Entry<DateTime,Long> e : stringLongMap.entrySet()){
-            System.out.println(e.getKey() + " --> " + e.getValue()) ;
-        }
+        }).countByValue( );
+
+        // Active cases over time
+
         /*
         // Start event class occurences
 
@@ -403,6 +402,10 @@ public class LogSummary implements Serializable {
 
         System.out.println("Log Time Frame (start ts,end ts): (" + this.getProcessTimeFrame( ).getStartDate( ) + " , " + this.getProcessTimeFrame( ).getEndDate( ) + ")");
 
+        System.out.println("Histogram of Events over time") ;
+        for (Map.Entry<DateTime,Long> e : this.eventsOverTime.entrySet()){
+            System.out.println(e.getKey() + " -> " + e.getValue()) ;
+        }
 
 
         /*
