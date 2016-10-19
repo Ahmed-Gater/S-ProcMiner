@@ -1,9 +1,9 @@
 # S-ProcMiner
 Process mining tool developed using Apache Spark
 
-1. Process Log Analysis
+1. Process Log Analysis: set of descriptive stats
 
-2. Process Model Building
+2. Process Model Building:
 
 3. Social Network Analysis
 
