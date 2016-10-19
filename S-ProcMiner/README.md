@@ -1,15 +1,12 @@
 # S-ProcMiner
-Process mining tool developed with apache spark
+Process mining tool developed using Apache Spark
 
-Lien pour l'API: http://elasticsearch-py.readthedocs.org/en/master/helpers.html?highlight=reindex
-Lien pour le télachargement: https://pypi.python.org/pypi/elasticsearch/2.3.0
+1. Process Log Analysis
 
+2. Process Model Building
 
-from elasticsearch.helpers import reindex
-from elasticsearch import Elasticsearch
+3. Social Network Analysis
 
-// es est une instance elasticsearch
-es = Elasticsearch(['http://localhost:9200'])
+4. Conformance Checking of Post-mortem processes
 
-
-reindex(es,'site','ahmed',query={"query": {"match": {"name": "gater"}}})
+5. Real-time process monitoring
