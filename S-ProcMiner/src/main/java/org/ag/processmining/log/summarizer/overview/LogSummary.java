@@ -4,6 +4,7 @@ package org.ag.processmining.log.summarizer.overview;
  * @author ahmed
  */
 
+import com.sun.org.apache.bcel.internal.classfile.Code;
 import org.ag.processmining.log.model.*;
 import org.ag.processmining.log.summarizer.utils.SparkUtils;
 import org.ag.processmining.log.summarizer.utils.TimeFrame;
@@ -18,7 +19,10 @@ import org.joda.time.DateTime;
 import scala.Tuple2;
 
 import java.io.Serializable;
-import java.util.*;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.TreeSet;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BinaryOperator;
 
@@ -100,6 +104,7 @@ public class LogSummary implements Serializable {
      */
     Map<EventClass, Long> eventClassOccurences  ;
 
+    String toot ;
     private StatCounter numberOfEventClassess ;
     /**
      * Mapping from event classes that start a process instance to the number of
