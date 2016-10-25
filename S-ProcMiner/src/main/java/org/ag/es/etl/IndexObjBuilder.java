@@ -41,6 +41,9 @@ public class IndexObjBuilder {
         }
     }
 
+    public void toto(){
+        System.out.println("Tata") ;
+    }
     /*
         * 
      */
