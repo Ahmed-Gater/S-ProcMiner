@@ -6,7 +6,10 @@ import org.joda.time.DateTime;
 import org.joda.time.Duration;
 
 import java.io.Serializable;
-import java.util.*;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
 
 @Setter
@@ -42,16 +45,9 @@ public class ProcInstance implements Serializable {
     public Long getDuration(TimeUnit tu) {
 
         if (this.orderedEvents.lastKey( ) != null && this.orderedEvents.firstKey( ) != null) {
-            Duration d = new Duration(this.orderedEvents.firstKey( ).getMillis( ), this.orderedEvents.lastKey( ).getMillis( ));
-            if (tu.equals(TimeUnit.DAYS)) {
-                return d.getStandardDays( );
-            } else if (tu.equals(TimeUnit.HOURS)) {
-                return d.getStandardHours( );
-            } else if (tu.equals(TimeUnit.MINUTES)) {
-                return d.getStandardMinutes( );
-            } else if (tu.equals(TimeUnit.SECONDS)) {
-                return d.getStandardSeconds( );
-            }
+            Duration d = new Duration(this.orderedEvents.firstKey( ).getMillis(), this.orderedEvents.lastKey().getMillis());
+            return formatDuration(new Duration(this.orderedEvents.firstKey().getMillis(), this.orderedEvents.lastKey().getMillis()),
+                                    tu);
         }
         return -1L;
     }
@@ -61,11 +57,12 @@ public class ProcInstance implements Serializable {
     return new Duration(startDate.getMillis( ), endDate.getMillis( ));
      */
     public Long getMeanActivityDuration(TimeUnit tu) {
-        Long ts = 0L ;
+        Long ts = 0L;
+
         for (Map.Entry<DateTime, Event> e : this.orderedEvents.entrySet( )) {
-            ts += e.getValue().getDuration(tu) ;
+            ts += e.getValue( ).getDuration(tu);
         }
-        return ts/this.orderedEvents.size();
+        return ts / this.orderedEvents.size( );
     }
 
 
@@ -94,10 +91,36 @@ public class ProcInstance implements Serializable {
         return t;
     }
 
-    public List<String> getWaitingTimes(){
-        for(Map.Entry<DateTime,Event> e: this.orderedEvents.entrySet()){
+    public Long getWaitingTimes(TimeUnit tu) {
+        Duration waitingDuration = new Duration(0L, 0L);
+        Event previous = null;
+
+        for (Map.Entry<DateTime, Event> e : this.orderedEvents.entrySet( )) {
+            if (previous == null){
+                previous = e.getValue() ;
+            }
+            else {
+                waitingDuration = waitingDuration.plus(new Duration(previous.getEndDate( ), e.getValue( ).getStartDate( )));
+                previous = e.getValue() ;
+                Long l  = new Duration(previous.getEndDate(),e.getValue().getStartDate()).getMillis() ;
+                System.out.println("Waiting time = " + l);
+            }
 
         }
-        return null ;
+        return formatDuration(waitingDuration, tu);
+    }
+
+    private Long formatDuration(Duration d, TimeUnit tu) {
+        if (tu.equals(TimeUnit.DAYS)) {
+            return d.getStandardDays( );
+        } else if (tu.equals(TimeUnit.HOURS)) {
+            return d.getStandardHours( );
+        } else if (tu.equals(TimeUnit.MINUTES)) {
+            return d.getStandardMinutes( );
+        } else if (tu.equals(TimeUnit.SECONDS)) {
+            return d.getStandardSeconds( );
+        } else {
+            return -1L;
+        }
     }
 }

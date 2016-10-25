@@ -3,7 +3,7 @@ package org.ag.processmining.log.model;
 import lombok.Getter;
 import lombok.Setter;
 import org.ag.processmining.Utils.DateFormatExtractor;
-import org.ag.processmining.log.summarizer.TimeFrame;
+import org.ag.processmining.log.summarizer.utils.TimeFrame;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;

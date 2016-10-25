@@ -4,14 +4,14 @@ import org.ag.processmining.log.model.AttributeMapping;
 import org.ag.processmining.log.model.CaseId;
 import org.ag.processmining.log.model.Event;
 import org.ag.processmining.log.model.ProcInstance;
-import org.ag.processmining.log.summarizer.LogSummary;
-import org.ag.processmining.log.summarizer.SparkUtils.MapToCaseIdEvent;
+import org.ag.processmining.log.summarizer.overview.LogSummary;
+import org.ag.processmining.log.summarizer.utils.SparkUtils.MapToCaseIdEvent;
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 
-import static org.ag.processmining.log.summarizer.SparkUtils.MAP_TO_CASE_ID_PROC_INSTANCE;
+import static org.ag.processmining.log.summarizer.utils.SparkUtils.MAP_TO_CASE_ID_PROC_INSTANCE;
 
 public class FuzzyMiner {
     public static void main(String[] args) {

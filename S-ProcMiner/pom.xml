@@ -13,7 +13,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>org.ag.processmining.log.summarizer.LogSummarizer</mainClass>
+                            <mainClass>org.ag.processmining.log.summarizer.builder.ActivityOverviewBuilder.LogSummarizer</mainClass>
                         </manifest>
                     </archive>
                     <descriptorRefs>
