@@ -80,4 +80,7 @@ public final class SparkUtils {
         }
     }
 
+    public static void getVoid(){
+
+    }
 }
