@@ -561,7 +561,7 @@ public class LogSummary implements Serializable {
             }
         }).get()/numberEventClass;
 
-        eventClassOccurences.values( ).stream( ).reduce((a,b)->a+b).get()/numberEventClass;
+        Long eventclassoccurences = eventClassOccurences.values().stream( ).reduce((a,b)->a+b).get()/numberEventClass;
 
 
         /*

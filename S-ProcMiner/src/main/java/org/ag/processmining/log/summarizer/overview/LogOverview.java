@@ -5,5 +5,4 @@ package org.ag.processmining.log.summarizer.overview;
  */
 public class LogOverview {
 
-    public static list
 }
