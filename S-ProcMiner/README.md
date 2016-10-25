@@ -12,3 +12,5 @@ Process mining tool developed using Apache Spark
 5. Real-time process monitoring
 
 6. Filtering
+
+7. Process Log Using DataSet
