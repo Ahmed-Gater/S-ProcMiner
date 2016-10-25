@@ -10,3 +10,5 @@ Process mining tool developed using Apache Spark
 4. Conformance Checking of Post-mortem processes
 
 5. Real-time process monitoring
+
+6. Filtering
