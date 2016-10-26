@@ -1,9 +1,9 @@
 package org.ag.processmining.log.model;
 
 import lombok.Getter;
-import lombok.Setter;
 import org.ag.processmining.Utils.DateFormatExtractor;
-import org.ag.processmining.log.summarizer.utils.TimeFrame;
+import org.ag.processmining.Utils.TimeUtils;
+import org.ag.processmining.Utils.TimeUtils.TimeUnit;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
@@ -11,94 +11,92 @@ import org.joda.time.DateTime;
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
-@Setter
+/**
+ * Created by ahmed.gater on 26/10/2016.
+ */
+
 @Getter
 public class Event implements Serializable {
-    private static final long serialVersionUID = 1L;
-    private static final char FIELDS_DELIMITER = ';';
-    AttributeMapping att_map;
-    String[] event_attributes;
 
+    private static final long serialVersionUID = 1L;
     private CaseId caseId;
-    private EventClass eventClass;
+    private ActivityClass activityClass;
+    private DateTime start ;
+    private DateTime end ;
     private Originator originator;
-    private TimeFrame timeFrame;
     private Map<String, String> data;
 
 
-    public Event(String event_as_string, AttributeMapping att_map, String[] event_attributes) throws IOException {
-        this.att_map = att_map;
-        this.event_attributes = event_attributes;
-        CSVFormat csvFileFormat = CSVFormat.DEFAULT.withHeader(event_attributes).withDelimiter(FIELDS_DELIMITER);
-        data = ((CSVRecord) CSVParser.parse(event_as_string, csvFileFormat).getRecords( ).get(0)).toMap( );
+    private Event(EventBuilder builder) {
+        this.caseId = builder.caseId;
+        this.activityClass = builder.activityClass ;
+        this.start = builder.start ;
+        this.end = builder.end ;
+        this.originator = builder.originator ;
+        this.data = builder.data ;
+    }
 
-        // Event Case id
-        caseId = new CaseId( );
-        for (String case_id_field : att_map.getCaseIdFields( )) {
-            caseId.addAttribute(case_id_field, data.get(case_id_field));
-            data.remove(case_id_field);
+
+    public double duration(TimeUnit tu) {
+        return TimeUtils.duration(start,end,tu)  ;
+    }
+
+    public static class EventBuilder {
+        private CaseId caseId;
+        private ActivityClass activityClass;
+        private Originator originator;
+        private DateTime start ;
+        private DateTime end ;
+        private Map<String, String> data;
+
+        public EventBuilder(String eventAsString, char fieldDelimiter,String[] header) throws IOException {
+            data = ((CSVRecord) CSVParser.parse(eventAsString, CSVFormat.DEFAULT.withHeader(header)
+                    .withDelimiter(fieldDelimiter))
+                    .getRecords()
+                    .get(0))
+                    .toMap();
         }
 
-        // Event Time frame
-
-        DateTime start_timestamp = DateFormatExtractor.buildDateTime(data.get(att_map.getEventStartTimeField( )));
-        DateTime end_timestamp = DateFormatExtractor.buildDateTime(data.get(att_map.getEventEndTimeField( )));
-        data.remove(att_map.getEventStartTimeField( ));
-        data.remove(att_map.getEventEndTimeField( ));
-        this.timeFrame = new TimeFrame(start_timestamp, end_timestamp);
-
-        // Event class
-        eventClass = new EventClass(data.get(att_map.getEventClassField( )));
-        data.remove(att_map.getEventClassField( ));
-
-        // Event Originator
-        originator = new Originator(data.get(att_map.getOriginatorField( )));
-        data.remove(att_map.getOriginatorField( ));
-    }
-
-    /**
-     * @return the caseId
-     */
-    public CaseId getCaseId() {
-        return caseId;
-    }
-
-    public EventClass getEventClass() {
-        return this.eventClass;
-    }
-
-    public DateTime getStartDate() {
-        return this.timeFrame.getStartDate( );
-    }
-
-    public DateTime getEndDate() {
-        return this.timeFrame.getEndDate( );
-    }
-
-    public Long getDuration(TimeUnit tu) {
-        if (tu.equals(TimeUnit.DAYS)) {
-            return this.timeFrame.getDuration().getStandardDays() ;
-        } else if (tu.equals(TimeUnit.HOURS)) {
-            return this.timeFrame.getDuration().getStandardHours( );
-        } else if (tu.equals(TimeUnit.MINUTES)) {
-            return this.timeFrame.getDuration().getStandardMinutes( );
-        } else if (tu.equals(TimeUnit.SECONDS)) {
-            return this.timeFrame.getDuration().getStandardSeconds( );
+        public EventBuilder caseId(List<String> caseIdFields){
+            this.caseId = new CaseId();
+            for (String fld : caseIdFields) {
+                caseId.addField(fld, data.get(fld));
+            }
+            for (String fld : caseIdFields) {
+                this.data.remove(fld);
+            }
+            return this ;
         }
-        return -1L ;
-    }
 
-    public Originator getOriginator() {
-        return this.originator;
-    }
+        public EventBuilder activityClass(String activityClassFieldName){
+            this.activityClass = new ActivityClass(data.get(activityClassFieldName));
+            this.data.remove(activityClassFieldName) ;
+            return this ;
+        }
 
-    public String toString() {
-        return data.toString( );
-    }
+        public EventBuilder start(String startField){
+            this.start = DateFormatExtractor.buildDateTime(data.get(startField));
+            this.data.remove(startField) ;
+            return this ;
+        }
 
+        public EventBuilder end(String endField){
+            this.start = DateFormatExtractor.buildDateTime(data.get(endField));
+            this.data.remove(endField) ;
+            return this ;
+        }
+
+        public EventBuilder originator(String originatorField){
+            this.originator = new Originator(data.get(originatorField));
+            this.data.remove(originatorField) ;
+            return this ;
+        }
+        public Event build() {
+            return new Event(this);
+        }
+    }
 }
 
-  
