@@ -28,7 +28,7 @@ public class AttributeMapping implements Serializable {
     }
 
     private Map<?, ?> load(String mapFilePath) {
-        final Yaml yaml = new Yaml( );
+        final Yaml yaml = new Yaml();
         Map<?, ?> conf = null;
         Reader reader = null;
         try {
@@ -39,7 +39,7 @@ public class AttributeMapping implements Serializable {
         } finally {
             if (null != reader) {
                 try {
-                    reader.close( );
+                    reader.close();
                 } catch (final IOException ioe) {
                     System.err.println("Exception in reading mapping file: " + ioe);
                 }
@@ -72,9 +72,9 @@ public class AttributeMapping implements Serializable {
 
     @Override
     public String toString() {
-        return "CaseId field: " + this.getCaseIdFields( ) +
-                "\n Event class field: " + this.getEventClassField( ) +
-                "\n Start Time stamps field: " + this.getEventStartTimeField( ) +
-                "\n End time stamps field: " + this.getEventEndTimeField( );
+        return "CaseId field: " + this.getCaseIdFields() +
+                "\n EventOld class field: " + this.getEventClassField() +
+                "\n Start Time stamps field: " + this.getEventStartTimeField() +
+                "\n End time stamps field: " + this.getEventEndTimeField();
     }
 }

@@ -23,7 +23,7 @@ public class Originator implements Comparable, Serializable, Cloneable {
     }
 
     public void copy(Originator e) {
-        this.originatorName = e.geActivityName( );
+        this.originatorName = e.geActivityName();
     }
 
 
@@ -37,13 +37,13 @@ public class Originator implements Comparable, Serializable, Cloneable {
         if (o == null || !(o instanceof Originator)) {
             return false;
         }
-        return this.originatorName.equals(((Originator) o).geActivityName( ));
+        return this.originatorName.equals(((Originator) o).geActivityName());
     }
 
     @Override
     public int hashCode() {
         int result = 17;
-        result = 37 * result + this.originatorName.hashCode( );
+        result = 37 * result + this.originatorName.hashCode();
         return result;
     }
 
@@ -55,16 +55,16 @@ public class Originator implements Comparable, Serializable, Cloneable {
     @Override
     public int compareTo(Object o) {
         Originator toCompare = (Originator) o;
-        return this.toString( ).compareTo(toCompare.toString( ));
+        return this.toString().compareTo(toCompare.toString());
     }
 
     @Override
     public Object clone() {
         Originator o = null;
         try {
-            o = (Originator) super.clone( );
+            o = (Originator) super.clone();
         } catch (CloneNotSupportedException e) {
-            e.printStackTrace( );
+            e.printStackTrace();
         }
         return o;
     }

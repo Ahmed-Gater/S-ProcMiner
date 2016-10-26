@@ -4,10 +4,9 @@ package org.ag.processmining.log.summarizer.overview;
  * @author ahmed
  */
 
-import com.sun.org.apache.bcel.internal.classfile.Code;
 import org.ag.processmining.log.model.*;
 import org.ag.processmining.log.summarizer.utils.SparkUtils;
-import org.ag.processmining.log.summarizer.utils.TimeFrame;
+import org.ag.processmining.Utils.TimeUtils;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
@@ -35,7 +34,36 @@ import static org.ag.processmining.log.summarizer.utils.SparkUtils.MAP_TO_CASE_I
 public class LogSummary implements Serializable {
 
     static final long serialVersionUID = 1L;
-    Map<Tuple2<Originator, EventClass>, Long> mapOriginatorEventClassOccurences;
+    Map<Tuple2<Originator, ActivityClass>, Long> mapOriginatorEventClassOccurences;
+    /*
+    Histogram of Events over time
+     */
+    Map<DateTime, Long> eventsOverTime;
+    /*
+    Active cases over time
+     */
+    Map<DateTime, Long> activeCasesOverTime;
+    /*
+    Histogram of events by cases (Histogram showing the distribution of case sizes (number of events)
+     */
+    Map<Integer, Long> caseSizeDistribution;
+    /*
+    Case duration histogram
+     */
+    Map<Long, Long> caseDurationHistogram;
+    /*
+    Mean Activity duration histogram
+     */
+    Map<Long, Long> caseActivityMeanDurationHistogram;
+    /*
+    Case waiting time histogram
+     */
+    Map<Long, Long> caseWaitingTimeHistogram;
+    /*
+    Occurences of each event class
+     */
+    Map<ActivityClass, Long> eventClassOccurences;
+    String toot;
     /**
      * The name of the logs (e.g. name of the application that generated the
      * logs)
@@ -49,7 +77,7 @@ public class LogSummary implements Serializable {
     /**
      * The time frame of the process instances in the log
      */
-    private TimeFrame processTimeFrame = null;
+    private TimeUtils processTimeUtils = null;
     /*
         The total number of events of the log
      */
@@ -58,64 +86,25 @@ public class LogSummary implements Serializable {
      * The total number of process instances contained in a log.
      */
     private long numberOfProcessInstances = 0;
-
     /*
     Case duration stats
      */
-    private StatCounter caseDurationStats ;
-
+    private StatCounter caseDurationStats;
     /*
     Case size stats
      */
-    private StatCounter caseSizeStats ;
-
-    /*
-    Histogram of Events over time
-     */
-    Map<DateTime, Long> eventsOverTime ;
-
-    /*
-    Active cases over time
-     */
-    Map<DateTime, Long> activeCasesOverTime ;
-
-    /*
-    Histogram of events by cases (Histogram showing the distribution of case sizes (number of events)
-     */
-    Map<Integer, Long> caseSizeDistribution ;
-
-    /*
-    Case duration histogram
-     */
-    Map<Long, Long> caseDurationHistogram ;
-
-    /*
-    Mean Activity duration histogram
-     */
-    Map<Long, Long> caseActivityMeanDurationHistogram ;
-
-    /*
-    Case waiting time histogram
-     */
-    Map<Long, Long> caseWaitingTimeHistogram ;
-
-    /*
-    Occurences of each event class
-     */
-    Map<EventClass, Long> eventClassOccurences  ;
-
-    String toot ;
-    private StatCounter numberOfEventClassess ;
+    private StatCounter caseSizeStats;
+    private StatCounter numberOfEventClassess;
     /**
      * Mapping from event classes that start a process instance to the number of
      * process instances actually start a process instance
      */
-    private Map<EventClass, Long> startingLogEvents = null;
+    private Map<ActivityClass, Long> startingLogEvents = null;
     /**
      * Mapping from event classes that end a process instance to the number of
      * process instances actually end a process instance
      */
-    private Map<EventClass, Long> endingLogEvents = null;
+    private Map<ActivityClass, Long> endingLogEvents = null;
 
 
     /**
@@ -128,7 +117,7 @@ public class LogSummary implements Serializable {
     private Map<Originator, Long> originatorOccurences = null;
 
 
-    private TreeSet<EventClass> eventClasses;
+    private TreeSet<ActivityClass> activityClasses;
 
     /**
      * Creates a new log summary.
@@ -154,8 +143,8 @@ public class LogSummary implements Serializable {
         JavaRDD<String> RDDSrc = sc.textFile(sourceFile);
 
         // Building Summary data
-        JavaPairRDD<CaseId, Event> CASE_ID_EVENT_MAP = RDDSrc.mapToPair(new SparkUtils.MapToCaseIdEvent(att_map, event_attributes));
-        JavaPairRDD<CaseId, ProcInstance> CASE_ID_PROC_INSTANCE = CASE_ID_EVENT_MAP.groupByKey().mapToPair(MAP_TO_CASE_ID_PROC_INSTANCE);
+        JavaPairRDD<CaseId, EventOld> CASE_ID_EVENT_MAP = RDDSrc.mapToPair(new SparkUtils.MapToCaseIdEvent(att_map, event_attributes));
+        JavaPairRDD<CaseId, Trace> CASE_ID_PROC_INSTANCE = CASE_ID_EVENT_MAP.groupByKey().mapToPair(MAP_TO_CASE_ID_PROC_INSTANCE);
 
 
         /**
@@ -166,78 +155,78 @@ public class LogSummary implements Serializable {
 
 
         // Number of process instance
-        ls.setNumberOfProcessInstances(CASE_ID_PROC_INSTANCE.count( ));
+        ls.setNumberOfProcessInstances(CASE_ID_PROC_INSTANCE.count());
 
         // Number of events
-        ls.setNumberOfEvents(RDDSrc.count( ));
+        ls.setNumberOfEvents(RDDSrc.count());
 
-        // Event classes
-        ls.setEventClassOccurences(CASE_ID_EVENT_MAP.map(EVENT_CLASSES_GETTER).countByValue( ));
+        // EventOld classes
+        ls.setEventClassOccurences(CASE_ID_EVENT_MAP.map(EVENT_CLASSES_GETTER).countByValue());
 
         // Mean, Max, Min, Std duration of cases
-        ls.caseDurationStats = CASE_ID_PROC_INSTANCE.mapToDouble(new DoubleFunction<Tuple2<CaseId, ProcInstance>>( ) {
+        ls.caseDurationStats = CASE_ID_PROC_INSTANCE.mapToDouble(new DoubleFunction<Tuple2<CaseId, Trace>>() {
             @Override
-            public double call(Tuple2<CaseId, ProcInstance> t) throws Exception {
-                return t._2( ).getDuration(TimeUnit.DAYS);
+            public double call(Tuple2<CaseId, Trace> t) throws Exception {
+                return t._2().getDuration(TimeUnit.DAYS);
             }
-        }).stats( );
+        }).stats();
         // Mean, Max, Min and Std of case size (number of events)
-        ls.caseSizeStats = CASE_ID_PROC_INSTANCE.mapToDouble(new DoubleFunction<Tuple2<CaseId, ProcInstance>>( ) {
+        ls.caseSizeStats = CASE_ID_PROC_INSTANCE.mapToDouble(new DoubleFunction<Tuple2<CaseId, Trace>>() {
             @Override
-            public double call(Tuple2<CaseId, ProcInstance> t) throws Exception {
-                return t._2( ).getSize();
+            public double call(Tuple2<CaseId, Trace> t) throws Exception {
+                return t._2().getSize();
             }
-        }).stats( );
+        }).stats();
 
         // First and Last event date
-        DateTime logStartDate = CASE_ID_PROC_INSTANCE.map(new Function<Tuple2<CaseId, ProcInstance>, DateTime>( ) {
+        DateTime logStartDate = CASE_ID_PROC_INSTANCE.map(new Function<Tuple2<CaseId, Trace>, DateTime>() {
             @Override
-            public DateTime call(Tuple2<CaseId, ProcInstance> t) throws Exception {
+            public DateTime call(Tuple2<CaseId, Trace> t) throws Exception {
                 return t._2().getStartTS();
             }
-        }).min(new DateTimeComparator()) ;
+        }).min(new DateTimeComparator());
 
-        DateTime logEndDate = CASE_ID_PROC_INSTANCE.map(new Function<Tuple2<CaseId, ProcInstance>, DateTime>( ) {
+        DateTime logEndDate = CASE_ID_PROC_INSTANCE.map(new Function<Tuple2<CaseId, Trace>, DateTime>() {
             @Override
-            public DateTime call(Tuple2<CaseId, ProcInstance> t) throws Exception {
+            public DateTime call(Tuple2<CaseId, Trace> t) throws Exception {
                 return t._2().getEndTS();
             }
-        }).max(new DateTimeComparator()) ;
+        }).max(new DateTimeComparator());
 
-        System.out.println("Start process: " + logStartDate) ;
-        System.out.println("End process: " + logEndDate) ;
-        ls.processTimeFrame = new TimeFrame(logStartDate,logEndDate) ;
+        System.out.println("Start process: " + logStartDate);
+        System.out.println("End process: " + logEndDate);
+        ls.processTimeUtils = new TimeUtils(logStartDate, logEndDate);
 
         // Events over time
-        ls.eventsOverTime = CASE_ID_EVENT_MAP.map(new Function<Tuple2<CaseId, Event>, DateTime>( ) {
+        ls.eventsOverTime = CASE_ID_EVENT_MAP.map(new Function<Tuple2<CaseId, EventOld>, DateTime>() {
             @Override
-            public DateTime call(Tuple2<CaseId, Event> t) throws Exception {
-                DateTime dt = t._2( ).getStartDate() ;
-                return new DateTime(dt.getYear(), dt.getMonthOfYear(), dt.getDayOfMonth(),0, 0) ;
+            public DateTime call(Tuple2<CaseId, EventOld> t) throws Exception {
+                DateTime dt = t._2().getStartDate();
+                return new DateTime(dt.getYear(), dt.getMonthOfYear(), dt.getDayOfMonth(), 0, 0);
             }
-        }).countByValue( );
+        }).countByValue();
 
         // Active cases over time
-        ls.activeCasesOverTime = CASE_ID_PROC_INSTANCE.flatMap(new FlatMapFunction<Tuple2<CaseId, ProcInstance>, DateTime>( ) {
+        ls.activeCasesOverTime = CASE_ID_PROC_INSTANCE.flatMap(new FlatMapFunction<Tuple2<CaseId, Trace>, DateTime>() {
             @Override
-            public Iterable<DateTime> call(Tuple2<CaseId, ProcInstance> t) throws Exception {
-                return t._2( ).getActiveDays( );
+            public Iterable<DateTime> call(Tuple2<CaseId, Trace> t) throws Exception {
+                return t._2().getActiveDays();
             }
-        }).countByValue( );
+        }).countByValue();
 
         // Histogram of events by case
-        ls.caseSizeDistribution = CASE_ID_PROC_INSTANCE.map(new Function<Tuple2<CaseId, ProcInstance>, Integer>( ) {
+        ls.caseSizeDistribution = CASE_ID_PROC_INSTANCE.map(new Function<Tuple2<CaseId, Trace>, Integer>() {
             @Override
-            public Integer call(Tuple2<CaseId, ProcInstance> t) throws Exception {
-                return t._2( ).getSize( );
+            public Integer call(Tuple2<CaseId, Trace> t) throws Exception {
+                return t._2().getSize();
             }
-        }).countByValue( );
+        }).countByValue();
 
         // Histogram of duration
-        ls.caseDurationHistogram = CASE_ID_PROC_INSTANCE.map(new Function<Tuple2<CaseId, ProcInstance>, Long>( ) {
+        ls.caseDurationHistogram = CASE_ID_PROC_INSTANCE.map(new Function<Tuple2<CaseId, Trace>, Long>() {
             @Override
-            public Long call(Tuple2<CaseId, ProcInstance> t) throws Exception {
-                return t._2( ).getDuration(TimeUnit.DAYS);
+            public Long call(Tuple2<CaseId, Trace> t) throws Exception {
+                return t._2().getDuration(TimeUnit.DAYS);
             }
         }).countByValue();
 
@@ -245,21 +234,23 @@ public class LogSummary implements Serializable {
         /*
         Mean Activity duration (est la moyenne des durees des activites)
          */
-        ls.caseActivityMeanDurationHistogram = CASE_ID_PROC_INSTANCE.map(new Function<Tuple2<CaseId, ProcInstance>, Long>( ) {
-            Long timeBucket = 1L ;
-            @Override
-            public Long call(Tuple2<CaseId, ProcInstance> t) throws Exception {
-                return (t._2( ).getMeanActivityDuration(TimeUnit.HOURS)/timeBucket)*timeBucket ;
-            }
-        }).countByValue( );
+        ls.caseActivityMeanDurationHistogram = CASE_ID_PROC_INSTANCE.map(new Function<Tuple2<CaseId, Trace>, Long>() {
+            Long timeBucket = 1L;
 
-        ls.caseWaitingTimeHistogram = CASE_ID_PROC_INSTANCE.map(new Function<Tuple2<CaseId, ProcInstance>, Long>( ) {
-            Long timeBucket = 1L ;
             @Override
-            public Long call(Tuple2<CaseId, ProcInstance> t) throws Exception {
-                return (t._2( ).getWaitingTimes(TimeUnit.DAYS)/timeBucket)*timeBucket ;
+            public Long call(Tuple2<CaseId, Trace> t) throws Exception {
+                return (t._2().getMeanActivityDuration(TimeUnit.HOURS) / timeBucket) * timeBucket;
             }
-        }).countByValue( );
+        }).countByValue();
+
+        ls.caseWaitingTimeHistogram = CASE_ID_PROC_INSTANCE.map(new Function<Tuple2<CaseId, Trace>, Long>() {
+            Long timeBucket = 1L;
+
+            @Override
+            public Long call(Tuple2<CaseId, Trace> t) throws Exception {
+                return (t._2().getWaitingTimes(TimeUnit.DAYS) / timeBucket) * timeBucket;
+            }
+        }).countByValue();
 
 
         /**
@@ -271,15 +262,15 @@ public class LogSummary implements Serializable {
         Activities occurence stats
          */
 
-        ls.eventClassOccurences = CASE_ID_EVENT_MAP.map(new Function<Tuple2<CaseId, Event>, EventClass>( ) {
+        ls.eventClassOccurences = CASE_ID_EVENT_MAP.map(new Function<Tuple2<CaseId, EventOld>, ActivityClass>() {
             @Override
-            public EventClass call(Tuple2<CaseId, Event> t) throws Exception {
-                return t._2( ).getEventClass( );
+            public ActivityClass call(Tuple2<CaseId, EventOld> t) throws Exception {
+                return t._2().getActivityClass();
             }
-        }).countByValue( );
+        }).countByValue();
 
-        StatCounter ssc = new StatCounter() ;
-        
+        StatCounter ssc = new StatCounter();
+
         //ls.numberOfEventClassess = ls.eventClassOccurences.keySet().size() ;
 
         /*
@@ -343,15 +334,15 @@ public class LogSummary implements Serializable {
     /**
      * @return the processTimeFrame
      */
-    public TimeFrame getProcessTimeFrame() {
-        return processTimeFrame;
+    public TimeUtils getProcessTimeFrame() {
+        return processTimeUtils;
     }
 
     /**
-     * @param processTimeFrame the processTimeFrame to set
+     * @param processTimeUtils the processTimeFrame to set
      */
-    public void setProcessTimeFrame(TimeFrame processTimeFrame) {
-        this.processTimeFrame = processTimeFrame;
+    public void setProcessTimeFrame(TimeUtils processTimeUtils) {
+        this.processTimeUtils = processTimeUtils;
     }
 
     /**
@@ -385,59 +376,59 @@ public class LogSummary implements Serializable {
     /**
      * @return the eventClasses
      */
-    public TreeSet<EventClass> getEventClasses() {
-        if (this.eventClasses == null) {
-            this.eventClasses = new TreeSet<>(eventClassOccurences.keySet( ));
+    public TreeSet<ActivityClass> getEventClasses() {
+        if (this.activityClasses == null) {
+            this.activityClasses = new TreeSet<>(eventClassOccurences.keySet());
         }
-        return this.eventClasses;
+        return this.activityClasses;
     }
 
     /**
-     * @param eventClasses the eventClasses to set
+     * @param activityClasses the eventClasses to set
      */
-    public void setEventClasses(TreeSet<EventClass> eventClasses) {
-        this.eventClasses = eventClasses;
+    public void setEventClasses(TreeSet<ActivityClass> activityClasses) {
+        this.activityClasses = activityClasses;
     }
 
     /**
      * @return the startingLogEvents
      */
-    public Map<EventClass, Long> getStartingLogEvents() {
+    public Map<ActivityClass, Long> getStartingLogEvents() {
         return startingLogEvents;
     }
 
     /**
      * @param startingLogEvents the startingLogEvents to set
      */
-    public void setStartingLogEvents(Map<EventClass, Long> startingLogEvents) {
+    public void setStartingLogEvents(Map<ActivityClass, Long> startingLogEvents) {
         this.startingLogEvents = startingLogEvents;
     }
 
     /**
      * @return the endingLogEvents
      */
-    public Map<EventClass, Long> getEndingLogEvents() {
+    public Map<ActivityClass, Long> getEndingLogEvents() {
         return endingLogEvents;
     }
 
     /**
      * @param endingLogEvents the endingLogEvents to set
      */
-    public void setEndingLogEvents(Map<EventClass, Long> endingLogEvents) {
+    public void setEndingLogEvents(Map<ActivityClass, Long> endingLogEvents) {
         this.endingLogEvents = endingLogEvents;
     }
 
     /**
      * @return the mapEventClassToProcessOccurences
      */
-    public Map<EventClass, Long> getEventClassesOccurences() {
+    public Map<ActivityClass, Long> getEventClassesOccurences() {
         return eventClassOccurences;
     }
 
     /**
      * @param eventClassOccurences
      */
-    public void setEventClassOccurences(Map<EventClass, Long> eventClassOccurences) {
+    public void setEventClassOccurences(Map<ActivityClass, Long> eventClassOccurences) {
         this.eventClassOccurences = eventClassOccurences;
     }
 
@@ -474,13 +465,13 @@ public class LogSummary implements Serializable {
      */
     public void setOriginatorOccurences(Map<Originator, Long> orgOcc) {
         this.originatorOccurences = orgOcc;
-        this.originators = new TreeSet<>(orgOcc.keySet( ));
+        this.originators = new TreeSet<>(orgOcc.keySet());
     }
 
     /**
      * @return the mapOriginatorsToEventClasses
      */
-    public Map<Tuple2<Originator, EventClass>, Long> getMapOriginatorsEventClassesOccurences() {
+    public Map<Tuple2<Originator, ActivityClass>, Long> getMapOriginatorsEventClassesOccurences() {
         return mapOriginatorEventClassOccurences;
     }
 
@@ -488,10 +479,10 @@ public class LogSummary implements Serializable {
      * @param mapOriginatorsToEventClasses the mapOriginatorsToEventClasses to
      *                                     set
      */
-    public void setMapOriginatorsEventClassesOccurences(Map<Tuple2<Originator, EventClass>, Object> mapOriginatorsToEventClasses) {
-        this.mapOriginatorEventClassOccurences = new HashMap<>( );
-        for (Map.Entry<Tuple2<Originator, EventClass>, Object> e : mapOriginatorsToEventClasses.entrySet( )) {
-            this.mapOriginatorEventClassOccurences.put(e.getKey( ), (Long) e.getValue( ));
+    public void setMapOriginatorsEventClassesOccurences(Map<Tuple2<Originator, ActivityClass>, Object> mapOriginatorsToEventClasses) {
+        this.mapOriginatorEventClassOccurences = new HashMap<>();
+        for (Map.Entry<Tuple2<Originator, ActivityClass>, Object> e : mapOriginatorsToEventClasses.entrySet()) {
+            this.mapOriginatorEventClassOccurences.put(e.getKey(), (Long) e.getValue());
         }
     }
 
@@ -500,76 +491,76 @@ public class LogSummary implements Serializable {
         System.out.println("Application description: " + this.logDescription);
         System.out.println("Number of events: " + this.numberOfEvents);
         System.out.println("Number of cases: " + this.numberOfProcessInstances);
-        System.out.println("Number of activities: " + this.getEventClasses( ).size( ));
+        System.out.println("Number of activities: " + this.getEventClasses().size());
         System.out.println("Case duration: (min," + this.caseDurationStats.min() +
-                            "), (max, " + this.caseDurationStats.max() +
-                            "), (mean, " + this.caseDurationStats.mean() +
-                            "), (std, " + this.caseDurationStats.stdev() + ")"
-                            ) ;
+                "), (max, " + this.caseDurationStats.max() +
+                "), (mean, " + this.caseDurationStats.mean() +
+                "), (std, " + this.caseDurationStats.stdev() + ")"
+        );
 
         System.out.println("Case size: (min," + this.caseSizeStats.min() +
                 "), (max, " + this.caseSizeStats.max() +
                 "), (mean, " + this.caseSizeStats.mean() +
                 "), (std, " + this.caseSizeStats.stdev() + ")"
-        ) ;
+        );
 
-        System.out.println("Log Time Frame (start ts,end ts): (" + this.getProcessTimeFrame( ).getStartDate( ) + " , " + this.getProcessTimeFrame( ).getEndDate( ) + ")");
+        System.out.println("Log Time Frame (start ts,end ts): (" + this.getProcessTimeFrame().getStartDate() + " , " + this.getProcessTimeFrame().getEndDate() + ")");
 
-        System.out.println("Histogram of Events over time") ;
-        for (Map.Entry<DateTime,Long> e : this.eventsOverTime.entrySet()){
-            System.out.println(e.getKey() + " -> " + e.getValue()) ;
+        System.out.println("Histogram of Events over time");
+        for (Map.Entry<DateTime, Long> e : this.eventsOverTime.entrySet()) {
+            System.out.println(e.getKey() + " -> " + e.getValue());
         }
 
-        System.out.println("Number of active cases over time") ;
-        for (Map.Entry<DateTime,Long> e : this.activeCasesOverTime.entrySet()){
-            System.out.println(e.getKey() + " -> " + e.getValue()) ;
+        System.out.println("Number of active cases over time");
+        for (Map.Entry<DateTime, Long> e : this.activeCasesOverTime.entrySet()) {
+            System.out.println(e.getKey() + " -> " + e.getValue());
         }
 
-        System.out.println("Distribution of case size") ;
-        for(Map.Entry<Integer,Long> e : this.caseSizeDistribution.entrySet()){
-            System.out.println(e.getKey() + " --> " + e.getValue()) ;
+        System.out.println("Distribution of case size");
+        for (Map.Entry<Integer, Long> e : this.caseSizeDistribution.entrySet()) {
+            System.out.println(e.getKey() + " --> " + e.getValue());
         }
 
-        System.out.println("Case duration histogram") ;
-        for(Map.Entry<Long,Long> e : this.caseDurationHistogram.entrySet()){
-            System.out.println(e.getKey() + " --> " + e.getValue() ) ;
+        System.out.println("Case duration histogram");
+        for (Map.Entry<Long, Long> e : this.caseDurationHistogram.entrySet()) {
+            System.out.println(e.getKey() + " --> " + e.getValue());
         }
 
-        System.out.println("Case activity mean duration histogram") ;
-        for(Map.Entry<Long,Long> e : caseActivityMeanDurationHistogram.entrySet()){
-            System.out.println(e.getKey() + " --> " + e.getValue()) ;
+        System.out.println("Case activity mean duration histogram");
+        for (Map.Entry<Long, Long> e : caseActivityMeanDurationHistogram.entrySet()) {
+            System.out.println(e.getKey() + " --> " + e.getValue());
         }
 
-        System.out.println("Case waiting time histogram") ;
-        for(Map.Entry<Long,Long> e : caseWaitingTimeHistogram.entrySet()){
-            System.out.println(e.getKey() + " --> " + e.getValue()) ;
+        System.out.println("Case waiting time histogram");
+        for (Map.Entry<Long, Long> e : caseWaitingTimeHistogram.entrySet()) {
+            System.out.println(e.getKey() + " --> " + e.getValue());
         }
 
 
-        System.out.println("Event class occurences") ;
-        for(Map.Entry<EventClass,Long> e : eventClassOccurences.entrySet()){
-            System.out.println(e.getKey() + "--> " + e.getValue()) ;
+        System.out.println("EventOld class occurences");
+        for (Map.Entry<ActivityClass, Long> e : eventClassOccurences.entrySet()) {
+            System.out.println(e.getKey() + "--> " + e.getValue());
         }
 
-        Long minEventClassOcuurences = eventClassOccurences.values().stream().min((a, b)-> a>b ? 0:1 ).get() ;
-        Long maxEventClassOccurences = eventClassOccurences.values().stream().max((a,b)-> a>b ? 0:1 ).get() ;
-        Long numberEventClass = eventClassOccurences.values().stream().count() ;
-        long l = eventClassOccurences.values( ).stream( ).reduce(new BinaryOperator<Long>( ) {
+        Long minEventClassOcuurences = eventClassOccurences.values().stream().min((a, b) -> a > b ? 0 : 1).get();
+        Long maxEventClassOccurences = eventClassOccurences.values().stream().max((a, b) -> a > b ? 0 : 1).get();
+        Long numberEventClass = eventClassOccurences.values().stream().count();
+        long l = eventClassOccurences.values().stream().reduce(new BinaryOperator<Long>() {
             @Override
             public Long apply(Long a, Long b) {
                 return a + b;
             }
-        }).get()/numberEventClass;
+        }).get() / numberEventClass;
 
-        Long eventclassoccurences = eventClassOccurences.values().stream( ).reduce((a,b)->a+b).get()/numberEventClass;
+        Long eventclassoccurences = eventClassOccurences.values().stream().reduce((a, b) -> a + b).get() / numberEventClass;
 
 
         /*
-        System.out.println("Event class occurences:");
+        System.out.println("EventOld class occurences:");
         System.out.println(this.eventClassOccurences);
-        System.out.println("Start Event class occurences");
+        System.out.println("Start EventOld class occurences");
         System.out.println(this.startingLogEvents);
-        System.out.println("End Event class occurences");
+        System.out.println("End EventOld class occurences");
         System.out.println(this.endingLogEvents);
         System.out.println("Number of originators: " + this.originators.size( ));
         System.out.println("Orignator occurences");

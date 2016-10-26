@@ -25,10 +25,10 @@ public class ActivityOverviewBuilder {
             String applicationName = "Process Mining using Apache Spark";
             String applicationDesc = "Building statistics about the process";
 
-            SparkConf conf = new SparkConf( ).setAppName(applicationName).setMaster("local[*]");
+            SparkConf conf = new SparkConf().setAppName(applicationName).setMaster("local[*]");
             JavaSparkContext sc = new JavaSparkContext(conf);
             LogSummary lss = LogSummary.buildSummary(sc, applicationName, applicationDesc, sourceFile, event_attributes, att_map);
-            lss.print( );
+            lss.print();
         }
     }
 }

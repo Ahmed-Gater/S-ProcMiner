@@ -12,58 +12,62 @@ import java.util.Iterator;
  */
 public final class SparkUtils {
 
-    public static final PairFunction<Tuple2<CaseId, Iterable<Event>>, CaseId, ProcInstance> MAP_TO_CASE_ID_PROC_INSTANCE = new PairFunction<Tuple2<CaseId, Iterable<Event>>, CaseId, ProcInstance>( ) {
+    public static final PairFunction<Tuple2<CaseId, Iterable<EventOld>>, CaseId, Trace> MAP_TO_CASE_ID_PROC_INSTANCE = new PairFunction<Tuple2<CaseId, Iterable<EventOld>>, CaseId, Trace>() {
         @Override
-        public Tuple2<CaseId, ProcInstance> call(Tuple2<CaseId, Iterable<Event>> t) throws Exception {
-            Iterator<Event> it = t._2( ).iterator( );
-            ProcInstance procInstance = new ProcInstance( );
-            System.out.println(t._1().toString()) ;
-            while (it.hasNext( )) {
-                procInstance.addEvent(it.next());
+        public Tuple2<CaseId, Trace> call(Tuple2<CaseId, Iterable<EventOld>> t) throws Exception {
+            Iterator<EventOld> it = t._2().iterator();
+            Trace trace = new Trace();
+            System.out.println(t._1().toString());
+            while (it.hasNext()) {
+                trace.addEvent(it.next());
             }
-            return new Tuple2(t._1( ), procInstance);
+            return new Tuple2(t._1(), trace);
         }
     };
-    public static final Function<Tuple2<CaseId, Event>, EventClass> EVENT_CLASSES_GETTER = new Function<Tuple2<CaseId, Event>, EventClass>( ) {
+    public static final Function<Tuple2<CaseId, EventOld>, ActivityClass> EVENT_CLASSES_GETTER = new Function<Tuple2<CaseId, EventOld>, ActivityClass>() {
         @Override
-        public EventClass call(Tuple2<CaseId, Event> tuple) throws Exception {
-            return tuple._2( ).getEventClass( );
+        public ActivityClass call(Tuple2<CaseId, EventOld> tuple) throws Exception {
+            return tuple._2().getActivityClass();
         }
     };
-    public static final Function<Tuple2<CaseId, ProcInstance>, EventClass> START_EVENT_CLASSES = new Function<Tuple2<CaseId, ProcInstance>, EventClass>( ) {
+    public static final Function<Tuple2<CaseId, Trace>, ActivityClass> START_EVENT_CLASSES = new Function<Tuple2<CaseId, Trace>, ActivityClass>() {
         @Override
-        public EventClass call(Tuple2<CaseId, ProcInstance> tuple) throws Exception {
-            return tuple._2( ).getStartEvent().getEventClass();
+        public ActivityClass call(Tuple2<CaseId, Trace> tuple) throws Exception {
+            return tuple._2().getStartEvent().getActivityClass();
         }
     };
-    public static final Function<Tuple2<CaseId, ProcInstance>, EventClass> END_EVENT_CLASSES = new Function<Tuple2<CaseId, ProcInstance>, EventClass>( ) {
+    public static final Function<Tuple2<CaseId, Trace>, ActivityClass> END_EVENT_CLASSES = new Function<Tuple2<CaseId, Trace>, ActivityClass>() {
         @Override
-        public EventClass call(Tuple2<CaseId, ProcInstance> tuple) throws Exception {
-            return tuple._2( ).getEndEvent( ).getEventClass();
+        public ActivityClass call(Tuple2<CaseId, Trace> tuple) throws Exception {
+            return tuple._2().getEndEvent().getActivityClass();
         }
     };
-    public static final Function<Tuple2<CaseId, Event>, Originator> EVENT_ORIGINATOR = new Function<Tuple2<CaseId, Event>, Originator>( ) {
+    public static final Function<Tuple2<CaseId, EventOld>, Originator> EVENT_ORIGINATOR = new Function<Tuple2<CaseId, EventOld>, Originator>() {
         @Override
-        public Originator call(Tuple2<CaseId, Event> tuple) throws Exception {
-            return tuple._2( ).getOriginator( );
+        public Originator call(Tuple2<CaseId, EventOld> tuple) throws Exception {
+            return tuple._2().getOriginator();
         }
     };
-    public static final Function<Tuple2<CaseId, Event>, Originator> ORIGINATOR_EVENT = new Function<Tuple2<CaseId, Event>, Originator>( ) {
+    public static final Function<Tuple2<CaseId, EventOld>, Originator> ORIGINATOR_EVENT = new Function<Tuple2<CaseId, EventOld>, Originator>() {
         @Override
-        public Originator call(Tuple2<CaseId, Event> tuple) throws Exception {
-            return tuple._2( ).getOriginator( );
+        public Originator call(Tuple2<CaseId, EventOld> tuple) throws Exception {
+            return tuple._2().getOriginator();
         }
     };
-    public static final PairFunction<Tuple2<CaseId, Event>, Tuple2<Originator, EventClass>, Long> ORIGINATOR_EVENT_CLASS_OCCURENCES = new PairFunction<Tuple2<CaseId, Event>, Tuple2<Originator, EventClass>, Long>( ) {
+    public static final PairFunction<Tuple2<CaseId, EventOld>, Tuple2<Originator, ActivityClass>, Long> ORIGINATOR_EVENT_CLASS_OCCURENCES = new PairFunction<Tuple2<CaseId, EventOld>, Tuple2<Originator, ActivityClass>, Long>() {
         @Override
-        public Tuple2<Tuple2<Originator, EventClass>, Long> call(Tuple2<CaseId, Event> t) throws Exception {
-            Tuple2<Originator, EventClass> org_eventcls = new Tuple2<>(t._2( ).getOriginator( ), t._2( ).getEventClass( ));
-            Tuple2<Tuple2<Originator, EventClass>, Long> r = new Tuple2(org_eventcls, 1L);
+        public Tuple2<Tuple2<Originator, ActivityClass>, Long> call(Tuple2<CaseId, EventOld> t) throws Exception {
+            Tuple2<Originator, ActivityClass> org_eventcls = new Tuple2<>(t._2().getOriginator(), t._2().getActivityClass());
+            Tuple2<Tuple2<Originator, ActivityClass>, Long> r = new Tuple2(org_eventcls, 1L);
             return r;
         }
     };
 
-    public static class MapToCaseIdEvent implements PairFunction<String, CaseId, Event> {
+    public static void getVoid() {
+
+    }
+
+    public static class MapToCaseIdEvent implements PairFunction<String, CaseId, EventOld> {
 
         AttributeMapping att_map;
         String[] event_attributes;
@@ -74,13 +78,9 @@ public final class SparkUtils {
         }
 
         @Override
-        public Tuple2<CaseId, Event> call(String t) throws Exception {
-            Event e = new Event(t, att_map, event_attributes);
-            return new Tuple2(e.getCaseId( ), e);
+        public Tuple2<CaseId, EventOld> call(String t) throws Exception {
+            EventOld e = new EventOld(t, att_map, event_attributes);
+            return new Tuple2(e.getCaseId(), e);
         }
-    }
-
-    public static void getVoid(){
-
     }
 }

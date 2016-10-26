@@ -55,8 +55,6 @@ public class CaseId implements Serializable {
         return true;
     }
 
-
-
     @Override
     public String toString() {
         String s = "";
