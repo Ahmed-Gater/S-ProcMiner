@@ -1,7 +1,7 @@
 /*
  * @author Ahmed Gater (ahmed.gater@gmail.com)
  */
-package org.ag.processmining.log.summarizer.utils;
+package org.ag.processmining.Utils;
 
 import org.joda.time.*;
 
@@ -13,7 +13,7 @@ import java.io.Serializable;
 public final class TimeUtils implements Serializable {
     static final long serialVersionUID = 1L;
 
-    static enum TimeUnit {
+    public static enum TimeUnit {
         MONTH,
         WEEK,
         DAY,
