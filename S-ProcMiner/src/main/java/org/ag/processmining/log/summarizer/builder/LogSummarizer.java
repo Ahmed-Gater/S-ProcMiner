@@ -27,6 +27,6 @@ public class LogSummarizer {
         SparkConf conf = new SparkConf().setAppName(applicationName).setMaster("local[*]");
         JavaSparkContext sc = new JavaSparkContext(conf);
         LogSummary lss = LogSummary.buildSummary(sc, applicationName, applicationDesc, sourceFile, event_attributes, att_map);
-        lss.print();
+
     }
 }

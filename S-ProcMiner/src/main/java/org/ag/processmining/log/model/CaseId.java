@@ -14,9 +14,6 @@ public class CaseId implements Serializable {
     private TreeMap<String, String> fields = null;
 
 
-    /*
-    Adding a field to case id
-     */
     public void addField(String name, String value) {
         if (fields ==null) fields = new TreeMap<>();
         this.fields.put(name, value);

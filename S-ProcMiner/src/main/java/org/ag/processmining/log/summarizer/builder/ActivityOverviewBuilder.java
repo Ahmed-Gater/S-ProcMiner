@@ -9,6 +9,8 @@ import org.apache.spark.api.java.JavaSparkContext;
  * Created by ahmed.gater on 25/10/2016.
  */
 public class ActivityOverviewBuilder {
+
+
     public static class LogSummarizer {
 
         public static void main(String[] args) {
@@ -28,7 +30,7 @@ public class ActivityOverviewBuilder {
             SparkConf conf = new SparkConf().setAppName(applicationName).setMaster("local[*]");
             JavaSparkContext sc = new JavaSparkContext(conf);
             LogSummary lss = LogSummary.buildSummary(sc, applicationName, applicationDesc, sourceFile, event_attributes, att_map);
-            lss.print();
+
         }
     }
 }

@@ -9,7 +9,8 @@ import lombok.Setter;
 @Setter
 @Getter
 public class ActivityClassOverview {
-    int k;
+
+
 
 
 }

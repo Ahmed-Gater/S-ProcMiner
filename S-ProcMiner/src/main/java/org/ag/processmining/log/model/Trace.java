@@ -15,17 +15,18 @@ public class Trace implements Serializable {
     static final long serialVersionUID = 1L;
     private CaseId id = null;
     private TreeMap<DateTime, Event> orderedEvents = null;
-    private DoubleSummaryStatistics getEventDurationStats = null;
 
-    public Trace() {
+
+    public Trace(CaseId id) {
         this.orderedEvents = new TreeMap();
+        this.id = id ;
     }
-
-    public boolean addEvent(Event e) {
+    public Trace addEvent(Event e) {
         if (this.id == null) {
             this.id = e.getCaseId();
         }
-        return (orderedEvents.put(e.getStart(), e) != null);
+        orderedEvents.put(e.getStart(), e) ;
+        return this ;
     }
 
     public double duration(TimeUnit tu) {
@@ -78,4 +79,13 @@ public class Trace implements Serializable {
         return this.orderedEvents.lastEntry().getValue().getEnd();
     }
 
+    public Trace merge(Trace y){
+        if (!y.getId().equals(this.getId())){
+            return null ;
+        }
+        Trace t = new Trace(this.getId()) ;
+        t.orderedEvents.putAll(this.getOrderedEvents());
+        t.orderedEvents.putAll(y.getOrderedEvents());
+        return t ;
+    }
 }
