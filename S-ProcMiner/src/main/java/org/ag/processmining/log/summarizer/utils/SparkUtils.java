@@ -10,21 +10,7 @@ import scala.Tuple2;
  */
 public final class SparkUtils {
 
-    /*
-    public static final PairFunction<Tuple2<CaseId, Iterable<Event>>, CaseId, Trace> MAP_TO_CASE_ID_PROC_INSTANCE = new PairFunction<Tuple2<CaseId, Iterable<Event>>, CaseId, Trace>() {
-        @Override
-        public Tuple2<CaseId, Trace> call(Tuple2<CaseId, Iterable<Event>> t) throws Exception {
-            Iterator<Event> it = t._2().iterator();
-            Trace trace = new Trace() ;
-            System.out.println(t._1().toString());
-            while (it.hasNext()) {
-                trace.addEvent(it.next());
-            }
-            return new Tuple2(t._1(), trace);
-        }
-    };
-    */
-    public static final Function<Tuple2<CaseId, Event>, ActivityClass> EVENT_CLASSES_GETTER = new Function<Tuple2<CaseId, Event>, ActivityClass>() {
+ public static final Function<Tuple2<CaseId, Event>, ActivityClass> EVENT_CLASSES_GETTER = new Function<Tuple2<CaseId, Event>, ActivityClass>() {
         @Override
         public ActivityClass call(Tuple2<CaseId, Event> tuple) throws Exception {
             return tuple._2().getActivityClass();
@@ -69,10 +55,10 @@ public final class SparkUtils {
 
     public static class MapToCaseIdEvent implements PairFunction<String, CaseId, Event> {
 
-        AttributeMapping att_map;
+        EventSchema att_map;
         String[] event_attributes;
 
-        public MapToCaseIdEvent(AttributeMapping att_m, String[] event_atts) {
+        public MapToCaseIdEvent(EventSchema att_m, String[] event_atts) {
             att_map = att_m;
             event_attributes = event_atts;
         }
