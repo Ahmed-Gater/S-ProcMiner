@@ -3,7 +3,6 @@ package org.ag.processmining.log.summarizer.overview;
 /**
  * @author ahmed
  */
-
 import org.ag.processmining.Utils.TimeUtils;
 import org.ag.processmining.log.model.*;
 import org.ag.processmining.log.model.Event.EventBuilder;
@@ -13,7 +12,7 @@ import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.util.StatCounter;
 import org.joda.time.DateTime;
 import scala.Tuple2;
-
+import org.ag.processmining.log.summarizer.overview.ActivityClassOverview.ActivityClassOverviewBuilder ;
 import java.io.Serializable;
 import java.util.Comparator;
 import java.util.Map;
@@ -130,33 +129,42 @@ public class LogSummary implements Serializable {
         this("", "");
     }
 
-    public static LogSummary buildSummary(JavaSparkContext sc, String appliName, String appliDesc, String sourceFile, String[] event_attributes, AttributeMapping att_map) {
+    public static LogSummary buildSummary(JavaSparkContext sc, String sourceFile, String[] logHeader, EventSchema eSchema) {
 
-        LogSummary ls = new LogSummary(appliName, appliDesc);
-        JavaRDD<String> RDDSrc = sc.textFile(sourceFile);
+        LogSummary ls = new LogSummary();
+        JavaRDD<String> rawLogRDD = sc.textFile(sourceFile);
+        JavaPairRDD<CaseId, Event> events = buildEvents(rawLogRDD,logHeader, eSchema) ;
+        JavaPairRDD<CaseId, Trace> traces = buildTraces(events);
+        System.out.println(traces.count()) ;
+        ActivityClassOverview build = new ActivityClassOverviewBuilder(traces).build();
+        Map<ActivityClass, StatCounter> activityClassStats = build.activityClassStats;
+        System.out.println(activityClassStats) ;
 
-        // Building Summary data
-        //JavaPairRDD<CaseId, Event> CASE_ID_EVENT_MAP = RDDSrc.mapToPair(new SparkUtils.MapToCaseIdEvent(att_map, event_attributes));
-        JavaPairRDD<CaseId, Event> CASE_ID_EVENT_MAP = RDDSrc.mapToPair(x -> {
-            Event e = new EventBuilder(x, ';', event_attributes)
-                    .caseId(att_map.getCaseIdFields())
-                    .activityClass(att_map.getEventClassField())
-                    .originator(att_map.getOriginatorField())
-                    .start(att_map.getEventStartTimeField())
-                    .end(att_map.getEventEndTimeField())
+
+        //System.out.println(CASE_ID_PROC_INSTANCE.count());
+        return null;
+    }
+
+    public static JavaPairRDD<CaseId, Trace> buildTraces(JavaPairRDD<CaseId, Event> events){
+        return events
+                .mapToPair(x -> new Tuple2<>(x._1(), new Trace(x._1()).addEvent(x._2())))
+                .reduceByKey((x, y) -> x.merge(y));
+    }
+
+    public static JavaPairRDD<CaseId, Event> buildEvents(JavaRDD<String> rawLogRDD,String[] logHeader, EventSchema eSchema){
+        return rawLogRDD.mapToPair(x -> {
+            Event e = new EventBuilder(x, ';', logHeader)
+                    .caseId(eSchema.getCaseIdFields())
+                    .activityClass(eSchema.getEventClassField())
+                    .originator(eSchema.getOriginatorField())
+                    .start(eSchema.getEventStartTimeField())
+                    .end(eSchema.getEventEndTimeField())
                     .build();
 
             return new Tuple2(e.getCaseId(), e) ;
         }) ;
-
-        JavaPairRDD<CaseId, Trace> CASE_ID_PROC_INSTANCE = CASE_ID_EVENT_MAP
-                .mapToPair(x -> new Tuple2<>(x._1(), new Trace(x._1()).addEvent(x._2())))
-                .reduceByKey((x, y) -> x.merge(y));
-
-        System.out.println(CASE_ID_PROC_INSTANCE.count()) ;
-        //System.out.println(CASE_ID_PROC_INSTANCE.count());
-        return null;
     }
+
 
     private static class DoubleComparator implements Comparator<Double>, Serializable {
         @Override
