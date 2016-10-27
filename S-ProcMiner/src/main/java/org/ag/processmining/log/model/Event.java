@@ -41,6 +41,7 @@ public class Event implements Serializable {
 
 
     public double duration(TimeUnit tu) {
+        System.out.println(TimeUtils.duration(start,end,tu)) ;
         return TimeUtils.duration(start,end,tu)  ;
     }
 
@@ -84,7 +85,7 @@ public class Event implements Serializable {
         }
 
         public EventBuilder end(String endField){
-            this.start = DateFormatExtractor.buildDateTime(data.get(endField));
+            this.end = DateFormatExtractor.buildDateTime(data.get(endField));
             this.data.remove(endField) ;
             return this ;
         }
