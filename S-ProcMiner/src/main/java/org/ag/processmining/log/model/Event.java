@@ -28,7 +28,7 @@ public class Event implements Serializable {
     private DateTime end ;
     private Originator originator;
     private Map<String, String> data;
-
+    private String toto ;
 
     private Event(EventBuilder builder) {
         this.caseId = builder.caseId;
