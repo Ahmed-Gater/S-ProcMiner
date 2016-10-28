@@ -11,7 +11,7 @@ import scala.Tuple2;
 import java.io.Serializable;
 import java.util.Map;
 import java.util.stream.Collectors;
-
+import java.util.AbstractMap.SimpleEntry ;
 /**
  * Created by ahmed.gater on 25/10/2016.
  */
@@ -22,8 +22,35 @@ public class ActivityClassOverview implements Serializable {
     Map<ActivityClass, StatCounter> activityClassStats ;
 
     private ActivityClassOverview(Map<ActivityClass, StatCounter> actClsStats){
-        System.out.println("coucou") ;
         this.activityClassStats = actClsStats ;
+    }
+
+    public Map<ActivityClass, Long> frequency(){
+        return activityClassStats.entrySet()
+                .stream()
+                .map(x -> new SimpleEntry<ActivityClass, Long>(x.getKey(), x.getValue().count()))
+                .collect(Collectors.toMap(a -> a.getKey(), a -> a.getValue()));
+    }
+
+        public Map<ActivityClass, Double> meanDuration(){
+        return activityClassStats.entrySet()
+                .stream()
+                .map(x -> new SimpleEntry<ActivityClass, Double>(x.getKey(), x.getValue().mean()))
+                .collect(Collectors.toMap(a -> a.getKey(), a -> a.getValue()));
+    }
+
+    public Map<ActivityClass, Double> rangeDuration(){
+        return activityClassStats.entrySet()
+                .stream()
+                .map(x -> new SimpleEntry<ActivityClass, Double>(x.getKey(), x.getValue().max() - x.getValue().min()))
+                .collect(Collectors.toMap(a -> a.getKey(), a -> a.getValue()));
+    }
+
+    public Map<ActivityClass, Double> aggregateDuration(){
+        return activityClassStats.entrySet()
+                .stream()
+                .map(x -> new SimpleEntry<ActivityClass, Double>(x.getKey(), x.getValue().sum()))
+                .collect(Collectors.toMap(a -> a.getKey(), a -> a.getValue()));
     }
 
     public static class ActivityClassOverviewBuilder implements Serializable {
