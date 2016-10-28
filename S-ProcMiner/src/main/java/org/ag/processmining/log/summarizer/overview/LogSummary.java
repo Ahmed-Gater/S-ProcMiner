@@ -139,8 +139,7 @@ public class LogSummary implements Serializable {
         ActivityClassOverview build = new ActivityClassOverviewBuilder(traces).build();
         Map<ActivityClass, StatCounter> activityClassStats = build.activityClassStats;
         System.out.println(activityClassStats) ;
-
-
+            
         //System.out.println(CASE_ID_PROC_INSTANCE.count());
         return null;
     }

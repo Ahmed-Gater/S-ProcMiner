@@ -1,6 +1,6 @@
 package org.ag.processmining.miner.fuzzyminer;
 
-import org.ag.processmining.log.model.AttributeMapping;
+import org.ag.processmining.log.model.EventSchema;
 import org.ag.processmining.log.summarizer.overview.LogSummary;
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaRDD;
@@ -23,7 +23,7 @@ public class FuzzyMiner {
                 "a_code_apporteur", "a_codecorbeille", "a_domaine", "a_servicepremium", "a_typologie",
                 "h_commentaire"};
 
-        AttributeMapping att_map = new AttributeMapping(attributeMappingFilePath);
+        EventSchema att_map = new EventSchema(attributeMappingFilePath);
         String applicationName = "Process Mining using Apache Spark";
         String applicationDesc = "Building statistics about the process";
         LogSummary ls = new LogSummary(applicationName, applicationDesc);
