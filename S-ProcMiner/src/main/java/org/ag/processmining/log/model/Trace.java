@@ -8,6 +8,11 @@ import org.joda.time.DateTime;
 
 import java.io.Serializable;
 import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Stream;
+import org.apache.spark.api.java.JavaPairRDD;
+import org.apache.spark.api.java.JavaRDD;
+import scala.Tuple2;
 
 @Setter
 @Getter
@@ -87,5 +92,11 @@ public class Trace implements Serializable {
         t.orderedEvents.putAll(this.getOrderedEvents());
         t.orderedEvents.putAll(y.getOrderedEvents());
         return t ;
+    }
+    
+    
+    
+    public Case buildCase(){
+        return new Case(this.id, this.size(),this.getStartTS(),this.getEndTS()) ; 
     }
 }
