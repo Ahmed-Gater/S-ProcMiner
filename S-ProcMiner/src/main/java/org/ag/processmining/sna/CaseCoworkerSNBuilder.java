@@ -27,10 +27,10 @@ public class CaseCoworkerSNBuilder implements SNBuilder, Serializable {
                                         .collect(Collectors.toSet()));
 
         for (int i=0; i<originators.size()-1; i++){
-            for(int j=i;j<originators.size();j++){
+            for(int j=i+1;j<originators.size();j++){
                 sn.addRelation(originators.get(i),originators.get(j));
             }
         }
-        return sn;
+        return sn ;
     }
 }
