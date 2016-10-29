@@ -11,19 +11,17 @@ import lombok.Setter;
 import org.joda.time.DateTime;
 
 /**
- *
  * @author youssef.hissou
  */
 @Getter
 @Setter
 @AllArgsConstructor
 public class Case {
-    
+
     public CaseId caseid;
     public int nbEvents;
     public DateTime started;
     public DateTime finished;
 
-    
-    
+
 }

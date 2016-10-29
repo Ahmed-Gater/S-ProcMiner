@@ -15,12 +15,12 @@ public class CaseId implements Serializable {
 
 
     public void addField(String name, String value) {
-        if (fields ==null) fields = new TreeMap<>();
+        if (fields == null) fields = new TreeMap<>();
         this.fields.put(name, value);
     }
 
-    public String getField(String fld){
-        return fields.containsKey(fld) ? fields.get(fld) : null ;
+    public String getField(String fld) {
+        return fields.containsKey(fld) ? fields.get(fld) : null;
     }
 
     /**
@@ -48,7 +48,7 @@ public class CaseId implements Serializable {
         }
 
         for (String fld : getFields().navigableKeySet())
-            if (!this.getField(fld).equalsIgnoreCase(((CaseId) obj).getField(fld))) return false ;
+            if (!this.getField(fld).equalsIgnoreCase(((CaseId) obj).getField(fld))) return false;
         return true;
     }
 

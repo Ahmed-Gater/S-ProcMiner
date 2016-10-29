@@ -22,12 +22,12 @@ public class HandOverSNBuilder implements SNBuilder, Serializable {
     public SocialNetwork build() {
         SocialNetwork sn = new SocialNetwork();
         List<Originator> collect = trace.getOrderedEvents().values().stream()
-                                        .map(x -> x.getOriginator()).collect(Collectors.toList());
+                                        .map(x -> x.getOriginator())
+                                        .collect(Collectors.toList());
         for(int i=0;i<collect.size()-1; i++){
             List<Originator> rel = collect.subList(i, i + 2);
             sn.addRelation(rel.get(0),rel.get(1));
         }
         return sn;
     }
-
 }

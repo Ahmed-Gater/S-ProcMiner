@@ -10,7 +10,7 @@ import scala.Tuple2;
  */
 public final class SparkUtils {
 
- public static final Function<Tuple2<CaseId, Event>, ActivityClass> EVENT_CLASSES_GETTER = new Function<Tuple2<CaseId, Event>, ActivityClass>() {
+    public static final Function<Tuple2<CaseId, Event>, ActivityClass> EVENT_CLASSES_GETTER = new Function<Tuple2<CaseId, Event>, ActivityClass>() {
         @Override
         public ActivityClass call(Tuple2<CaseId, Event> tuple) throws Exception {
             return tuple._2().getActivityClass();
@@ -68,7 +68,7 @@ public final class SparkUtils {
             //EventBuilder(String eventAsString, char fieldDelimiter,String[] header) ;
             //Event e = new Event(t, att_map, event_attributes);
             //return new Tuple2(e.getCaseId(), e);
-            return null ;
+            return null;
         }
     }
 }

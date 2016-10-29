@@ -8,10 +8,11 @@ import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.function.Function2;
 import org.apache.spark.util.StatCounter;
 import scala.Tuple2;
+
 import java.io.Serializable;
+import java.util.AbstractMap.SimpleEntry;
 import java.util.Map;
 import java.util.stream.Collectors;
-import java.util.AbstractMap.SimpleEntry ;
 
 /**
  * Created by ahmed.gater on 25/10/2016.
@@ -20,34 +21,34 @@ import java.util.AbstractMap.SimpleEntry ;
 public class ActivityClassOverview implements Serializable {
 
     private static final long serialVersionUID = 1L;
-    Map<ActivityClass, StatCounter> activityClassStats ;
+    Map<ActivityClass, StatCounter> activityClassStats;
 
-    private ActivityClassOverview(Map<ActivityClass, StatCounter> actClsStats){
-        this.activityClassStats = actClsStats ;
+    private ActivityClassOverview(Map<ActivityClass, StatCounter> actClsStats) {
+        this.activityClassStats = actClsStats;
     }
 
-    public Map<ActivityClass, Long> frequency(){
+    public Map<ActivityClass, Long> frequency() {
         return activityClassStats.entrySet()
                 .stream()
                 .map(x -> new SimpleEntry<ActivityClass, Long>(x.getKey(), x.getValue().count()))
                 .collect(Collectors.toMap(a -> a.getKey(), a -> a.getValue()));
     }
 
-        public Map<ActivityClass, Double> meanDuration(){
+    public Map<ActivityClass, Double> meanDuration() {
         return activityClassStats.entrySet()
                 .stream()
                 .map(x -> new SimpleEntry<ActivityClass, Double>(x.getKey(), x.getValue().mean()))
                 .collect(Collectors.toMap(a -> a.getKey(), a -> a.getValue()));
     }
 
-    public Map<ActivityClass, Double> rangeDuration(){
+    public Map<ActivityClass, Double> rangeDuration() {
         return activityClassStats.entrySet()
                 .stream()
                 .map(x -> new SimpleEntry<ActivityClass, Double>(x.getKey(), x.getValue().max() - x.getValue().min()))
                 .collect(Collectors.toMap(a -> a.getKey(), a -> a.getValue()));
     }
 
-    public Map<ActivityClass, Double> aggregateDuration(){
+    public Map<ActivityClass, Double> aggregateDuration() {
         return activityClassStats.entrySet()
                 .stream()
                 .map(x -> new SimpleEntry<ActivityClass, Double>(x.getKey(), x.getValue().sum()))
@@ -57,10 +58,10 @@ public class ActivityClassOverview implements Serializable {
     public static class ActivityClassOverviewBuilder implements Serializable {
 
         private static final long serialVersionUID = 1L;
-        JavaPairRDD<CaseId, Trace> traces ;
+        JavaPairRDD<CaseId, Trace> traces;
 
-        public ActivityClassOverviewBuilder(JavaPairRDD<CaseId, Trace> traces){
-            this.traces = traces ;
+        public ActivityClassOverviewBuilder(JavaPairRDD<CaseId, Trace> traces) {
+            this.traces = traces;
         }
 
         public ActivityClassOverview build() {
@@ -83,7 +84,7 @@ public class ActivityClassOverview implements Serializable {
                                 }
                             })
                     .collectAsMap();
-            return new ActivityClassOverview(activityClassStatCounterMap) ;
+            return new ActivityClassOverview(activityClassStatCounterMap);
         }
 
     }

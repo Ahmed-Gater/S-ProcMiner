@@ -6,4 +6,5 @@ package org.ag.processmining.sna;
 public interface SNBuilder {
 
     public SocialNetwork build() ;
+
 }
