@@ -3,16 +3,19 @@ package org.ag.processmining.log.summarizer.overview;
 /**
  * @author ahmed
  */
+
 import org.ag.processmining.Utils.TimeUtils;
 import org.ag.processmining.log.model.*;
 import org.ag.processmining.log.model.Event.EventBuilder;
+import org.ag.processmining.log.summarizer.overview.ActivityClassOverview.ActivityClassOverviewBuilder;
+import org.ag.processmining.sna.ActivityCoworkerSNBuilder;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.util.StatCounter;
 import org.joda.time.DateTime;
 import scala.Tuple2;
-import org.ag.processmining.log.summarizer.overview.ActivityClassOverview.ActivityClassOverviewBuilder ;
+
 import java.io.Serializable;
 import java.util.Comparator;
 import java.util.Map;
@@ -133,24 +136,34 @@ public class LogSummary implements Serializable {
 
         LogSummary ls = new LogSummary();
         JavaRDD<String> rawLogRDD = sc.textFile(sourceFile);
-        JavaPairRDD<CaseId, Event> events = buildEvents(rawLogRDD,logHeader, eSchema) ;
+        JavaPairRDD<CaseId, Event> events = buildEvents(rawLogRDD, logHeader, eSchema);
         JavaPairRDD<CaseId, Trace> traces = buildTraces(events);
-        System.out.println(traces.count()) ;
-        ActivityClassOverview build = new ActivityClassOverviewBuilder(traces).build();
-        Map<ActivityClass, StatCounter> activityClassStats = build.activityClassStats;
-        System.out.println(activityClassStats) ;
-            
+        System.out.println(traces.count());
+
+        ActivityClassOverview actClsOverview = new ActivityClassOverviewBuilder(traces).build();
+        /*
+        System.out.println(actClsOverview.frequency());
+        System.out.println(actClsOverview.meanDuration());
+        System.out.println(actClsOverview.aggregateDuration());
+        System.out.println(actClsOverview.rangeDuration());
+        */
+        //SocialNetwork handOverSN = traces.map(x -> new HandOverSNBuilder(x._2()).build()).reduce((x, y) -> x.merge(y));
+        //SocialNetwork caseCoWorkerSN = traces.map(x -> new CaseCoworkerSNBuilder(x._2()).build()).reduce((x, y) -> x.merge(y));
+
+        ActivityCoworkerSNBuilder a = new ActivityCoworkerSNBuilder(traces) ;
+        a.build() ;
+
         //System.out.println(CASE_ID_PROC_INSTANCE.count());
         return null;
     }
 
-    public static JavaPairRDD<CaseId, Trace> buildTraces(JavaPairRDD<CaseId, Event> events){
+    public static JavaPairRDD<CaseId, Trace> buildTraces(JavaPairRDD<CaseId, Event> events) {
         return events
                 .mapToPair(x -> new Tuple2<>(x._1(), new Trace(x._1()).addEvent(x._2())))
                 .reduceByKey((x, y) -> x.merge(y));
     }
 
-    public static JavaPairRDD<CaseId, Event> buildEvents(JavaRDD<String> rawLogRDD,String[] logHeader, EventSchema eSchema){
+    public static JavaPairRDD<CaseId, Event> buildEvents(JavaRDD<String> rawLogRDD, String[] logHeader, EventSchema eSchema) {
         return rawLogRDD.mapToPair(x -> {
             Event e = new EventBuilder(x, ';', logHeader)
                     .caseId(eSchema.getCaseIdFields())
@@ -160,8 +173,8 @@ public class LogSummary implements Serializable {
                     .end(eSchema.getEventEndTimeField())
                     .build();
 
-            return new Tuple2(e.getCaseId(), e) ;
-        }) ;
+            return new Tuple2(e.getCaseId(), e);
+        });
     }
 
 
