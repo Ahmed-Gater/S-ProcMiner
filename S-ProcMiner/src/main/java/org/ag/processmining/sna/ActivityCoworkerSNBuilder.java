@@ -23,7 +23,6 @@ public class ActivityCoworkerSNBuilder implements SNBuilder, Serializable {
 
     public ActivityCoworkerSNBuilder(JavaPairRDD<CaseId, Trace> traces){
         this.traces = traces ;
-
     }
     @Override
     public SocialNetwork build() {
@@ -46,7 +45,6 @@ public class ActivityCoworkerSNBuilder implements SNBuilder, Serializable {
                 }
             }
         });
-
         return sn ;
     }
 }
