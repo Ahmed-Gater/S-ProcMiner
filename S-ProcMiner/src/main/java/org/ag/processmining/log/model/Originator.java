@@ -12,10 +12,14 @@ public class Originator implements Comparable, Serializable, Cloneable {
     private static final long serialVersionUID = 1L;
 
     protected String originatorName = null;
+    
+    protected String originatorRole = null;
 
 
-    public Originator(String name) {
+
+    public Originator(String name, String role) {
         originatorName = name;
+        originatorRole = role;
     }
 
     public String geActivityName() {
@@ -26,6 +30,9 @@ public class Originator implements Comparable, Serializable, Cloneable {
         this.originatorName = e.geActivityName();
     }
 
+    public String getOriginatorRole() {
+        return originatorRole;
+    }
 
     public boolean equals(String otheractivityname) {
         return this.originatorName.equals(otheractivityname);

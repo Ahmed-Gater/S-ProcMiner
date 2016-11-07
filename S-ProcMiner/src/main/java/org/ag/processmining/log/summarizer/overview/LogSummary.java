@@ -139,6 +139,7 @@ public class LogSummary implements Serializable {
         JavaPairRDD<CaseId, Event> events = buildEvents(rawLogRDD, logHeader, eSchema);
         JavaPairRDD<CaseId, Trace> traces = buildTraces(events);
         System.out.println(traces.count());
+        
 
         ActivityClassOverview actClsOverview = new ActivityClassOverviewBuilder(traces).build();
         /*
@@ -159,7 +160,7 @@ public class LogSummary implements Serializable {
 
     public static JavaPairRDD<CaseId, Trace> buildTraces(JavaPairRDD<CaseId, Event> events) {
         return events
-                .mapToPair(x -> new Tuple2<>(x._1(), new Trace(x._1()).addEvent(x._2())))
+                .mapToPair(x -> new Tuple2<>(x._1, new Trace(x._1).addEvent(x._2)))
                 .reduceByKey((x, y) -> x.merge(y));
     }
 
@@ -168,7 +169,7 @@ public class LogSummary implements Serializable {
             Event e = new EventBuilder(x, ';', logHeader)
                     .caseId(eSchema.getCaseIdFields())
                     .activityClass(eSchema.getEventClassField())
-                    .originator(eSchema.getOriginatorField())
+                    .originator(eSchema.getOriginatorName(),eSchema.getOriginatorRole())
                     .start(eSchema.getEventStartTimeField())
                     .end(eSchema.getEventEndTimeField())
                     .build();
