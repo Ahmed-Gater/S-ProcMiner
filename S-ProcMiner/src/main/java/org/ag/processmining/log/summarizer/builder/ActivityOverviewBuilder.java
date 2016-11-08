@@ -10,7 +10,6 @@ import org.apache.spark.api.java.JavaSparkContext;
  */
 public class ActivityOverviewBuilder {
 
-
     public static class LogSummarizer {
 
         public static void main(String[] args) {
