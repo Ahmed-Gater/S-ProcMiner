@@ -90,9 +90,10 @@ public class Event implements Serializable {
             return this;
         }
 
-        public EventBuilder originator(String originatorField) {
-            this.originator = new Originator(data.get(originatorField));
-            this.data.remove(originatorField);
+        public EventBuilder originator(String originatorName, String originatorRole) {
+            this.originator = new Originator(data.get(originatorName),data.get(originatorRole));
+            this.data.remove(originatorName);
+            this.data.remove(originatorRole);
             return this;
         }
 

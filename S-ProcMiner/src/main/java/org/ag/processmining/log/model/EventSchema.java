@@ -66,10 +66,14 @@ public class EventSchema implements Serializable {
         return (String) att_mapping.get(ProcessMetaData.EVENT_END_TIME_FIELD_NAME);
     }
 
-    public String getOriginatorField() {
+    public String getOriginatorName() {
         return (String) att_mapping.get(ProcessMetaData.ORIGINATOR_FIELD_NAME);
     }
 
+    public String getOriginatorRole() {
+        return (String) att_mapping.get(ProcessMetaData.ORIGINATOR_FIELD_ROLE);
+    }
+    
     @Override
     public String toString() {
         return "CaseId field: " + this.getCaseIdFields() +

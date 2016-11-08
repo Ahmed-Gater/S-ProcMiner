@@ -12,5 +12,6 @@ public class ProcessMetaData implements Serializable {
     public final static String EVENT_START_TIME_FIELD_NAME = "EVENT_START_TIME_FIELD_NAME";
     public final static String EVENT_END_TIME_FIELD_NAME = "EVENT_END_TIME_FIELD_NAME";
     public final static String ORIGINATOR_FIELD_NAME = "ORIGINATOR_FIELD_NAME";
+    public final static String ORIGINATOR_FIELD_ROLE = "ORIGINATOR_FIELD_ROLE";
     private static final long serialVersionUID = 1L;
 }
