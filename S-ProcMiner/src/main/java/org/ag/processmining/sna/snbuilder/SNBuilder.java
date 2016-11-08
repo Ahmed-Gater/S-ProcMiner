@@ -1,7 +1,8 @@
-package org.ag.processmining.sna;
+package org.ag.processmining.sna.snbuilder;
 
 import org.ag.processmining.log.model.CaseId;
 import org.ag.processmining.log.model.Trace;
+import org.ag.processmining.sna.socialnetwork.SocialNetwork;
 import org.apache.spark.api.java.JavaPairRDD;
 
 /**
@@ -10,21 +11,14 @@ import org.apache.spark.api.java.JavaPairRDD;
 public abstract class SNBuilder {
 
     JavaPairRDD<CaseId, Trace> traces ;
-    SocialNetwork rawSn=null ;
 
     public SNBuilder(JavaPairRDD<CaseId, Trace> traces){
         this.traces = traces ;
     }
 
 
-    abstract public boolean build() ;
+    abstract public SocialNetwork build() ;
 
-    public SocialNetwork getRawSN(){
-        if (this.rawSn == null){
-            this.build() ;
-        }
-        return this.rawSn ;
 
-    }
 
 }

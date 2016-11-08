@@ -1,8 +1,9 @@
-package org.ag.processmining.sna;
+package org.ag.processmining.sna.snbuilder;
 
 import org.ag.processmining.log.model.CaseId;
 import org.ag.processmining.log.model.Originator;
 import org.ag.processmining.log.model.Trace;
+import org.ag.processmining.sna.socialnetwork.HandoverSocialNetwork;
 import org.apache.spark.api.java.JavaPairRDD;
 
 import java.io.Serializable;
@@ -13,7 +14,7 @@ import java.util.stream.Collectors;
  * Created by ahmed.gater on 29/10/2016.
  */
 
-public class HandOverSNBuilder extends SNBuilder implements Serializable {
+public class HandOverSNBuilder<Orginator> extends SNBuilder implements Serializable {
     static final long serialVersionUID = 1L;
 
     public HandOverSNBuilder(JavaPairRDD<CaseId, Trace> traces){
@@ -21,19 +22,18 @@ public class HandOverSNBuilder extends SNBuilder implements Serializable {
     }
 
     @Override
-    public boolean build() {
+    public HandoverSocialNetwork build() {
         try{
-            this.rawSn = traces.map(x -> buildTraceSocialNetwork(x._2()))
+            return traces.map(x -> buildTraceSocialNetwork(x._2()))
                     .reduce((x, y) -> x.merge(y));
-            return true ;
         }
         catch(Exception e){
-            return false ;
+            return null ;
         }
     }
 
-    private SocialNetwork buildTraceSocialNetwork(Trace trace){
-        SocialNetwork sn = new SocialNetwork();
+    private HandoverSocialNetwork buildTraceSocialNetwork(Trace trace){
+        HandoverSocialNetwork sn = new HandoverSocialNetwork();
         List<Originator> collect = trace.getOrderedEvents().values().stream()
                 .map(x -> x.getOriginator())
                 .collect(Collectors.toList());
@@ -43,5 +43,6 @@ public class HandOverSNBuilder extends SNBuilder implements Serializable {
         }
         return sn;
     }
+
 
 }

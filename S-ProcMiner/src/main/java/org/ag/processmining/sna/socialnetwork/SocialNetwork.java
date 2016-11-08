@@ -1,4 +1,4 @@
-package org.ag.processmining.sna;
+package org.ag.processmining.sna.socialnetwork;
 
 import com.google.common.collect.ImmutableList;
 import org.jgrapht.Graphs;
@@ -33,8 +33,9 @@ public class SocialNetwork<T> implements Serializable {
     }
 
     public void addRelation(T src, T dest) {
-        addRelation(src, dest, 1);
+        addRelation(src, dest, 1.0);
     }
+
 
     public SocialNetwork merge(SocialNetwork<T> sn1) {
         SocialNetwork sn = new SocialNetwork<T>();
@@ -50,5 +51,4 @@ public class SocialNetwork<T> implements Serializable {
                 sGraph.getEdgeWeight(e)));
         return sn;
     }
-
 }

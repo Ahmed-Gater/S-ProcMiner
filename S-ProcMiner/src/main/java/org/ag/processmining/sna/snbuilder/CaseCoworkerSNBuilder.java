@@ -1,8 +1,8 @@
-package org.ag.processmining.sna;
+package org.ag.processmining.sna.snbuilder;
 
 import org.ag.processmining.log.model.CaseId;
-import org.ag.processmining.log.model.Originator;
 import org.ag.processmining.log.model.Trace;
+import org.ag.processmining.sna.socialnetwork.CaseCoworkerSocialNetwork;
 import org.apache.spark.api.java.JavaPairRDD;
 
 import java.io.Serializable;
@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
  * Created by ahmed.gater on 29/10/2016.
  */
 
-public class CaseCoworkerSNBuilder extends SNBuilder implements Serializable {
+public class CaseCoworkerSNBuilder<Originator> extends SNBuilder implements Serializable {
     static final long serialVersionUID = 1L;
 
 
@@ -22,18 +22,17 @@ public class CaseCoworkerSNBuilder extends SNBuilder implements Serializable {
         super(traces) ;
     }
     @Override
-    public boolean build() {
+    public CaseCoworkerSocialNetwork build() {
         try{
-            rawSn = traces.map(x -> buildTraceSocialNetwork(x._2())).reduce((x, y) -> x.merge(y));
-            return true ;
+            return traces.map(x -> buildTraceSocialNetwork(x._2())).reduce((x, y) -> x.merge(y));
         }
         catch(Exception e){
-            return false ;
+            return null ;
         }
     }
 
-    private SocialNetwork buildTraceSocialNetwork(Trace trace){
-        SocialNetwork localSn = new SocialNetwork();
+    private CaseCoworkerSocialNetwork buildTraceSocialNetwork(Trace trace){
+        CaseCoworkerSocialNetwork localSn = new CaseCoworkerSocialNetwork();
         ArrayList<Originator> originators =  new ArrayList(
                 trace.getOrderedEvents().values().stream()
                         .map(x -> x.getOriginator())

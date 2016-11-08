@@ -1,9 +1,10 @@
-package org.ag.processmining.sna;
+package org.ag.processmining.sna.snbuilder;
 
 import org.ag.processmining.log.model.ActivityClass;
 import org.ag.processmining.log.model.CaseId;
 import org.ag.processmining.log.model.Originator;
 import org.ag.processmining.log.model.Trace;
+import org.ag.processmining.sna.socialnetwork.ActivityCoworkerSocialNetwork;
 import org.apache.commons.collections.map.HashedMap;
 import org.apache.spark.api.java.JavaPairRDD;
 import scala.Tuple2;
@@ -26,9 +27,9 @@ public class ActivityCoworkerSNBuilder extends SNBuilder implements Serializable
     }
 
     @Override
-    public boolean build() {
+    public ActivityCoworkerSocialNetwork build() {
         try{
-            Map<Tuple2<ActivityClass, Originator>, Long> k = traces.flatMapToPair(x -> x._2().activityClassOriginator())
+            Map<Tuple2<ActivityClass, org.ag.processmining.log.model.Originator>, Long> k = traces.flatMapToPair(x -> x._2().activityClassOriginator())
                     .countByValue();
             Map<ActivityClass,List<Tuple2<Originator,Long>>> res = new HashedMap() ;
             k.keySet().stream().forEach(x->{
@@ -39,7 +40,7 @@ public class ActivityCoworkerSNBuilder extends SNBuilder implements Serializable
             });
 
             // Building the social network
-            rawSn = new SocialNetwork<>() ;
+            ActivityCoworkerSocialNetwork rawSn = new ActivityCoworkerSocialNetwork<>() ;
             res.values().stream().forEach(x->{
                 for (int i=0; i<x.size()-1; i++){
                     for(int j=i+1;j<x.size();j++){
@@ -47,19 +48,12 @@ public class ActivityCoworkerSNBuilder extends SNBuilder implements Serializable
                     }
                 }
             });
-            return true ;
+            return rawSn ;
         }
         catch(Exception e){
-            this.rawSn = null ;
-            return false;
+           return null ;
         }
     }
 
-    public SocialNetwork getRawSN(){
-        if (this.rawSn == null){
-            this.build() ;
-        }
-        return this.rawSn ;
 
-    }
 }
