@@ -4,13 +4,13 @@ import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
-import java.util.Set ;
-import java.util.HashSet ;
+import java.util.Set;
 
 public class DateFormatExtractor {
 
-    private static final Map<String, String> DATE_FORMAT_REGEXPS = new HashMap<String, String>( ) {{
+    private static final Map<String, String> DATE_FORMAT_REGEXPS = new HashMap<String, String>() {{
         put("^\\d{8}$", "yyyyMMdd");
         put("^\\d{1,2}-\\d{1,2}-\\d{4}$", "dd-MM-yyyy");
         put("^\\d{4}-\\d{1,2}-\\d{1,2}$", "yyyy-MM-dd");
@@ -41,7 +41,7 @@ public class DateFormatExtractor {
 
 
     private static String determineDateFormat(String dateString) {
-        for (String regexp : DATE_FORMAT_REGEXPS.keySet( )) {
+        for (String regexp : DATE_FORMAT_REGEXPS.keySet()) {
             if (dateString.matches(regexp)) {
                 return DATE_FORMAT_REGEXPS.get(regexp);
             }
@@ -61,17 +61,14 @@ public class DateFormatExtractor {
     public static void main(String[] args) {
 
 
-
-
         DateTime firstDateRef = new DateTime(2016, 10, 1, 0, 0);
         DateTime lastDateRef = new DateTime(2016, 10, 10, 0, 0);
-        Set<DateTime> t = new HashSet<>( );
+        Set<DateTime> t = new HashSet<>();
         while (firstDateRef.compareTo(lastDateRef) <= 0) {
             t.add(firstDateRef);
-            System.out.println(firstDateRef.toString()) ;
+            System.out.println(firstDateRef.toString());
             firstDateRef = firstDateRef.plusDays(1);
         }
-
 
 
     }

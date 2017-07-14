@@ -1,17 +1,12 @@
 package org.ag.processmining.miner.fuzzyminer;
 
-import org.ag.processmining.log.model.AttributeMapping;
-import org.ag.processmining.log.model.CaseId;
-import org.ag.processmining.log.model.Event;
-import org.ag.processmining.log.model.ProcInstance;
-import org.ag.processmining.log.summarizer.LogSummary;
-import org.ag.processmining.log.summarizer.SparkUtils.MapToCaseIdEvent;
+import org.ag.processmining.log.model.EventSchema;
+import org.ag.processmining.log.summarizer.overview.LogSummary;
 import org.apache.spark.SparkConf;
-import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 
-import static org.ag.processmining.log.summarizer.SparkUtils.MAP_TO_CASE_ID_PROC_INSTANCE;
+//import static org.ag.processmining.log.summarizer.utils.SparkUtils.MAP_TO_CASE_ID_PROC_INSTANCE;
 
 public class FuzzyMiner {
     public static void main(String[] args) {
@@ -28,21 +23,21 @@ public class FuzzyMiner {
                 "a_code_apporteur", "a_codecorbeille", "a_domaine", "a_servicepremium", "a_typologie",
                 "h_commentaire"};
 
-        AttributeMapping att_map = new AttributeMapping(attributeMappingFilePath);
+        EventSchema att_map = new EventSchema(attributeMappingFilePath);
         String applicationName = "Process Mining using Apache Spark";
         String applicationDesc = "Building statistics about the process";
         LogSummary ls = new LogSummary(applicationName, applicationDesc);
-        SparkConf conf = new SparkConf( ).setAppName(applicationName).setMaster("local[*]");
+        SparkConf conf = new SparkConf().setAppName(applicationName).setMaster("local[*]");
         JavaSparkContext sc = new JavaSparkContext(conf);
         JavaRDD<String> RDDSrc = sc.textFile(sourceFile);
 
 
         // Building Summary data
-        JavaPairRDD<CaseId, Event> CASE_ID_EVENT_MAP = RDDSrc.mapToPair(new MapToCaseIdEvent(att_map, event_attributes));
-        JavaPairRDD<CaseId, ProcInstance> CASE_ID_PROC_INSTANCE = CASE_ID_EVENT_MAP.groupByKey( ).mapToPair(MAP_TO_CASE_ID_PROC_INSTANCE);
+        //JavaPairRDD<CaseId, Event> CASE_ID_EVENT_MAP = RDDSrc.mapToPair(new MapToCaseIdEvent(att_map, event_attributes));
+        //JavaPairRDD<CaseId, Trace> CASE_ID_PROC_INSTANCE = CASE_ID_EVENT_MAP.groupByKey().mapToPair(MAP_TO_CASE_ID_PROC_INSTANCE);
 
-        long count = CASE_ID_PROC_INSTANCE.count( );
-        System.out.println(count);
+        //long count = CASE_ID_PROC_INSTANCE.count();
+        //System.out.println(count);
 
 
     }

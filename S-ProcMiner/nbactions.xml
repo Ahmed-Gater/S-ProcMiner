@@ -10,9 +10,7 @@
             <goal>org.codehaus.mojo:exec-maven-plugin:1.2.1:exec</goal>
         </goals>
         <properties>
-            <exec.args>-classpath %classpath org.ag.processmining.log.summarizer.LogSummarizer process_data_set.txt
-                field_mapping.yml
-            </exec.args>
+            <exec.args>-classpath %classpath org.ag.processmining.log.summarizer.builder.LogSummarizer C:/Users/youssef.hissou/Desktop/PurchaseProcessTest.csv C:/Users/youssef.hissou/Desktop/attributeMapping.yaml</exec.args>
             <exec.executable>java</exec.executable>
         </properties>
     </action>
@@ -26,9 +24,7 @@
             <goal>org.codehaus.mojo:exec-maven-plugin:1.2.1:exec</goal>
         </goals>
         <properties>
-            <exec.args>-Xdebug -Xrunjdwp:transport=dt_socket,server=n,address=${jpda.address} -classpath %classpath
-                org.ag.processmining.log.summarizer.LogSummarizer process_data_set.txt field_mapping.yml
-            </exec.args>
+            <exec.args>-Xdebug -Xrunjdwp:transport=dt_socket,server=n,address=${jpda.address} -classpath %classpath org.ag.processmining.log.summarizer.builder.LogSummarizer C:/Users/youssef.hissou/Desktop/PurchaseProcessTest.csv C:/Users/youssef.hissou/Desktop/attributeMapping.yaml</exec.args>
             <exec.executable>java</exec.executable>
             <jpda.listen>true</jpda.listen>
         </properties>
@@ -43,9 +39,7 @@
             <goal>org.codehaus.mojo:exec-maven-plugin:1.2.1:exec</goal>
         </goals>
         <properties>
-            <exec.args>-classpath %classpath org.ag.processmining.log.summarizer.LogSummarizer process_data_set.txt
-                field_mapping.yml
-            </exec.args>
+            <exec.args>-classpath %classpath org.ag.processmining.log.summarizer.builder.LogSummarizer C:/Users/youssef.hissou/Desktop/PurchaseProcessTest.csv C:/Users/youssef.hissou/Desktop/attributeMapping.yaml</exec.args>
             <exec.executable>java</exec.executable>
         </properties>
     </action>
